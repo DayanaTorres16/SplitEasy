@@ -15,7 +15,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController(text: "Usuario Demo");
   final TextEditingController _emailController = TextEditingController(text: "luzdayanatorres@gmail.com");
 
-  // --- FUNCIÓN DE CONFIRMACIÓN PARA CERRAR SESIÓN ---
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -53,7 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // --- HEADER VERDE ---
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
@@ -66,13 +64,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: Column(
                 children: [
-                  // Título centrado (sin flecha)
                   const Text("Mi perfil", 
                     style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                   
                   const SizedBox(height: 25),
                   
-                  // Foto de perfil con botón de cámara
                   Stack(
                     children: [
                       Container(
@@ -94,7 +90,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: const BoxDecoration(
-                              color: Color(0xFF333333), // Color oscuro para que resalte
+                              color: Color(0xFF333333), 
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
@@ -113,7 +109,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            // --- ESTADÍSTICAS ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Container(
@@ -134,7 +129,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            // --- INFORMACIÓN PERSONAL ---
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
@@ -201,7 +195,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            // --- SEGURIDAD ---
             const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -228,7 +221,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
 
-            // --- BOTÓN CERRAR SESIÓN ---
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
               child: SizedBox(

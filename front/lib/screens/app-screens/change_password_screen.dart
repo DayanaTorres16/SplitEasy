@@ -8,12 +8,10 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  // Variables para controlar la visibilidad de las contraseñas
   bool _obscureActual = true;
   bool _obscureNueva = true;
   bool _obscureConfirmar = true;
 
-  // Función para mostrar el diálogo de confirmación
   void _showConfirmDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -29,8 +27,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Cierra el diálogo
-                Navigator.pop(context); // Vuelve al perfil
+                Navigator.pop(context); 
+                Navigator.pop(context); 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("Contraseña actualizada correctamente"),
@@ -56,7 +54,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       backgroundColor: const Color(0xFFF6F8F5),
       body: Column(
         children: [
-          // --- HEADER VERDE SEGÚN MOCKUP ---
           Container(
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
@@ -90,7 +87,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
           ),
 
-          // --- FORMULARIO ---
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(25),
@@ -120,14 +116,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   
                   const SizedBox(height: 40),
 
-                  // BOTÓN ACTUALIZAR
                   SizedBox(
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
                       onPressed: () => _showConfirmDialog(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF98E2B9), // Color verde clarito del mockup
+                        backgroundColor: const Color(0xFF98E2B9), 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         elevation: 0,
                       ),
@@ -144,7 +139,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  // Widget personalizado para los campos de contraseña
   Widget _buildPasswordField({
     required String label, 
     required String hint, 
