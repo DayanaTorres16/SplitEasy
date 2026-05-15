@@ -3,6 +3,7 @@ import '../../widgets/bottomNavBar.dart';
 import 'create_group_screen.dart';
 import 'all_groups_screen.dart';
 import 'group_details_screen.dart';
+// Se eliminó el import de history_screen porque la navegación es global ahora
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -12,13 +13,8 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  // El índice fijo para esta pantalla es 0
+  final int _selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +23,7 @@ class _MainScreenState extends State<MainScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            // --- HEADER: SALUDO Y LOGO ---
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
               child: Row(
@@ -34,6 +31,8 @@ class _MainScreenState extends State<MainScreen> {
                   Image.asset(
                     'assets/logo-inicio.png',
                     height: 42,
+                    errorBuilder: (context, error, stackTrace) => 
+                        const Icon(Icons.account_balance_wallet, color: Colors.white, size: 42),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -43,17 +42,17 @@ class _MainScreenState extends State<MainScreen> {
                         Text(
                           "¡Hola!",
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                            color: Colors.white, 
+                            fontSize: 16, 
+                            fontWeight: FontWeight.w500
                           ),
                         ),
                         Text(
                           "Usuario Demo",
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.white, 
+                            fontSize: 26, 
+                            fontWeight: FontWeight.bold
                           ),
                         ),
                       ],
@@ -66,14 +65,13 @@ class _MainScreenState extends State<MainScreen> {
                       color: Colors.white.withOpacity(0.18),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.person_outline,
-                      color: Colors.white,
-                    ),
+                    child: const Icon(Icons.person_outline, color: Colors.white),
                   ),
                 ],
               ),
             ),
+            
+            // --- CUERPO BLANCO REDONDEADO ---
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -89,6 +87,7 @@ class _MainScreenState extends State<MainScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // TARJETA DE BALANCE
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
@@ -106,20 +105,14 @@ class _MainScreenState extends State<MainScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Balance total",
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: Colors.black54,
-                              ),
-                            ),
+                            const Text("Balance total", style: TextStyle(fontSize: 15, color: Colors.black54)),
                             const SizedBox(height: 12),
                             const Text(
                               "+\$420.00",
                               style: TextStyle(
-                                fontSize: 34,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF13BE61),
+                                fontSize: 34, 
+                                fontWeight: FontWeight.bold, 
+                                color: Color(0xFF13BE61)
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -147,30 +140,27 @@ class _MainScreenState extends State<MainScreen> {
                           ],
                         ),
                       ),
+                      
                       const SizedBox(height: 18),
+                      
+                      // BOTONES DE ACCIÓN (Crear y Ver Grupos)
                       Row(
                         children: [
                           Expanded(
                             child: SizedBox(
                               height: 54,
                               child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const CreateGroupScreen(),
-                                    ),
-                                  );
-                                },
+                                onPressed: () => Navigator.push(
+                                  context, 
+                                  MaterialPageRoute(builder: (context) => const CreateGroupScreen())
+                                ),
                                 icon: const Icon(Icons.add, size: 18),
                                 label: const Text("Crear grupo"),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF13BE61),
                                   foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                   elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
                                 ),
                               ),
                             ),
@@ -180,83 +170,70 @@ class _MainScreenState extends State<MainScreen> {
                             child: SizedBox(
                               height: 54,
                               child: OutlinedButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const AllGroupsScreen(),
-                                    ),
-                                  );
-                                },
+                                onPressed: () => Navigator.push(
+                                  context, 
+                                  MaterialPageRoute(builder: (context) => const AllGroupsScreen())
+                                ),
                                 icon: const Icon(Icons.groups_outlined, size: 18),
                                 label: const Text("Ver grupos"),
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: const Color(0xFF13BE61),
-                                  side: const BorderSide(color: Color(0xFFD5EAD9)),
                                   backgroundColor: const Color(0xFFDFF4E5),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
+                                  side: const BorderSide(color: Color(0xFFD5EAD9)),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                 ),
                               ),
                             ),
                           ),
                         ],
                       ),
+                      
                       const SizedBox(height: 22),
+                      
+                      // LISTA DE GRUPOS RECIENTES
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
                             "Grupos recientes",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const AllGroupsScreen(),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: const Color(0xFF13BE61),
+                            onPressed: () => Navigator.push(
+                              context, 
+                              MaterialPageRoute(builder: (context) => const AllGroupsScreen())
                             ),
-                            child: const Text("Ver todos"),
+                            child: const Text("Ver todos", style: TextStyle(color: Color(0xFF13BE61))),
                           ),
                         ],
                       ),
+                      
                       const SizedBox(height: 6),
-                 GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const GroupDetailsScreen()),
-                    );
-                  },
-                    child: _GroupCard(
-                      icon: Icons.flight_takeoff_rounded,
-                      iconBackground: const Color(0xFFEAF6E9),
-                      title: "Viaje a Madrid",
-                      subtitle: "3 miembros • 3 gastos",
-                      amount: "+\$45.00",
-                    ),
-                  ),
-                      _GroupCard(
+                      
+                      // CARDS DE GRUPOS
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context, 
+                          MaterialPageRoute(builder: (context) => const GroupDetailsScreen())
+                        ),
+                        child: const _GroupCard(
+                          icon: Icons.flight_takeoff_rounded,
+                          iconBackground: Color(0xFFEAF6E9),
+                          title: "Viaje a Madrid",
+                          subtitle: "3 miembros • 3 gastos",
+                          amount: "+\$45.00",
+                        ),
+                      ),
+                      const _GroupCard(
                         icon: Icons.home_rounded,
-                        iconBackground: const Color(0xFFEAF6E9),
+                        iconBackground: Color(0xFFEAF6E9),
                         title: "Departamento",
                         subtitle: "2 miembros • 2 gastos",
                         amount: "+\$375.00",
                       ),
-                      _GroupCard(
+                      const _GroupCard(
                         icon: Icons.cake_rounded,
-                        iconBackground: const Color(0xFFEAF6E9),
+                        iconBackground: Color(0xFFEAF6E9),
                         title: "Cena cumpleaños",
                         subtitle: "4 miembros • 0 gastos",
                         amount: null,
@@ -269,13 +246,16 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
+      // --- NAVEGACIÓN GLOBAL ---
+      // Solo pasamos el índice. La lógica de clic vive dentro del widget.
       bottomNavigationBar: BottomNavBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
       ),
     );
   }
 }
+
+// --- WIDGETS AUXILIARES ---
 
 class _SummaryChip extends StatelessWidget {
   final Color backgroundColor;
@@ -299,19 +279,12 @@ class _SummaryChip extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-        ),
+        decoration: BoxDecoration(color: backgroundColor, borderRadius: BorderRadius.circular(16)),
         child: Row(
           children: [
             Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
+              width: 34, height: 34,
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
               child: Icon(icon, color: iconColor, size: 18),
             ),
             const SizedBox(width: 10),
@@ -319,19 +292,8 @@ class _SummaryChip extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    amount,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: amountColor,
-                    ),
-                  ),
+                  Text(title, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                  Text(amount, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: amountColor)),
                 ],
               ),
             ),
@@ -354,7 +316,7 @@ class _GroupCard extends StatelessWidget {
     required this.iconBackground,
     required this.title,
     required this.subtitle,
-    required this.amount,
+    this.amount,
   });
 
   @override
@@ -366,67 +328,27 @@ class _GroupCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE5E9E3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: iconBackground,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF13BE61),
-              size: 22,
-            ),
+            width: 42, height: 42,
+            decoration: BoxDecoration(color: iconBackground, borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: const Color(0xFF13BE61), size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.black54,
-                  ),
-                ),
+                Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.black54)),
               ],
             ),
           ),
           if (amount != null)
-            Text(
-              amount!,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF13BE61),
-              ),
-            ),
-          const SizedBox(width: 8),
-          const Icon(
-            Icons.chevron_right,
-            color: Colors.black38,
-          ),
+            Text(amount!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF13BE61))),
+          const Icon(Icons.chevron_right, color: Colors.black38),
         ],
       ),
     );

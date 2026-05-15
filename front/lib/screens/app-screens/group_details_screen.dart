@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'all_expenses_screen.dart';
+import 'history_screen.dart'; // Importación correcta del historial original
 
 class GroupDetailsScreen extends StatelessWidget {
   const GroupDetailsScreen({super.key});
@@ -23,7 +23,7 @@ class GroupDetailsScreen extends StatelessWidget {
               onPressed: () {
                 // Lógica real de borrado aquí
                 Navigator.pop(context); // Cierra el diálogo
-                Navigator.pop(context); // Vuelve al Home
+                Navigator.pop(context); // Vuelve al Home o lista
               },
               child: const Text("Eliminar", style: TextStyle(color: Colors.red)),
             ),
@@ -61,12 +61,12 @@ class GroupDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: const [
+                          const Row(
+                            children: [
                               Icon(Icons.flight_takeoff,
                                   color: Colors.white, size: 20),
                               SizedBox(width: 8),
-                              Text("Viaje a Madrid",
+                              Text("Viaje a Madrid", // Título del grupo
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -79,7 +79,6 @@ class GroupDetailsScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    // AQUÍ ESTÁ EL MENÚ DE LOS TRES PUNTITOS REEMPLAZADO
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert, color: Colors.white),
                       shape: RoundedRectangleBorder(
@@ -125,8 +124,8 @@ class GroupDetailsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               children: [
                 // SECCIÓN BALANCES
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Icon(Icons.swap_horiz,
                         color: Color(0xFF13BE61), size: 20),
                     SizedBox(width: 8),
@@ -163,15 +162,17 @@ class GroupDetailsScreen extends StatelessWidget {
                     const Text("Gastos recientes",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 18)),
-                 TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AllExpensesScreen()),
-                    );
-                  }, 
-                  child: const Text("Ver todos", style: TextStyle(color: Color(0xFF13BE61)))
-                ),
+                    TextButton(
+                        onPressed: () {
+                          // NAVEGACIÓN CORREGIDA A HISTORY_SCREEN
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HistoryScreen()),
+                          );
+                        },
+                        child: const Text("Ver todos",
+                            style: TextStyle(color: Color(0xFF13BE61)))),
                   ],
                 ),
                 _buildExpenseItem("Entradas museo", "Carlos López",
