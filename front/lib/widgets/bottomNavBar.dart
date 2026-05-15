@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/app-screens/main_screen.dart'; 
 import '../screens/app-screens/history_screen.dart';
-// import '../screens/profile_screen.dart'; 
+import '../screens/app-screens/profile_screen.dart'; 
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -28,7 +28,7 @@ class BottomNavBar extends StatelessWidget {
         );
         break;
       case 2:
-        // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
         break;
     }
   }
