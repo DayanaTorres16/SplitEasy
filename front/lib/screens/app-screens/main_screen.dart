@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/bottomNavBar.dart';
 import 'create_group_screen.dart';
 import 'all_groups_screen.dart';
+import 'history_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -17,6 +18,13 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (index == 1) { // Suponiendo que el icono de historial es el índice 1
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HistoryScreen()),
+      );
+    }
   }
 
   @override
