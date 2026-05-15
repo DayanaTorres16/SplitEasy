@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'history_screen.dart'; // Importación correcta del historial original
+import 'history_screen.dart'; 
 
 class GroupDetailsScreen extends StatelessWidget {
   const GroupDetailsScreen({super.key});
 
-  // Función para confirmar la eliminación
   void _mostrarDialogoEliminar(BuildContext context) {
     showDialog(
       context: context,
@@ -21,9 +20,8 @@ class GroupDetailsScreen extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // Lógica real de borrado aquí
-                Navigator.pop(context); // Cierra el diálogo
-                Navigator.pop(context); // Vuelve al Home o lista
+                Navigator.pop(context); 
+                Navigator.pop(context); 
               },
               child: const Text("Eliminar", style: TextStyle(color: Colors.red)),
             ),
@@ -39,7 +37,6 @@ class GroupDetailsScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF6F8F5),
       body: Column(
         children: [
-          // CABECERA VERDE
           Container(
             padding: const EdgeInsets.fromLTRB(10, 50, 20, 25),
             decoration: const BoxDecoration(
@@ -66,7 +63,7 @@ class GroupDetailsScreen extends StatelessWidget {
                               Icon(Icons.flight_takeoff,
                                   color: Colors.white, size: 20),
                               SizedBox(width: 8),
-                              Text("Viaje a Madrid", // Título del grupo
+                              Text("Viaje a Madrid", 
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20,
@@ -118,12 +115,10 @@ class GroupDetailsScreen extends StatelessWidget {
             ),
           ),
 
-          // CUERPO
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                // SECCIÓN BALANCES
                 const Row(
                   children: [
                     Icon(Icons.swap_horiz,
@@ -155,7 +150,6 @@ class GroupDetailsScreen extends StatelessWidget {
 
                 const SizedBox(height: 25),
 
-                // GASTOS RECIENTES
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -164,7 +158,6 @@ class GroupDetailsScreen extends StatelessWidget {
                             fontWeight: FontWeight.bold, fontSize: 18)),
                     TextButton(
                         onPressed: () {
-                          // NAVEGACIÓN CORREGIDA A HISTORY_SCREEN
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -188,8 +181,6 @@ class GroupDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
-  // --- WIDGETS DE APOYO ---
 
   Widget _buildSummaryCard(String value, String label) {
     return Container(
