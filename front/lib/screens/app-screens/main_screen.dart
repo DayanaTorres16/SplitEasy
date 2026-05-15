@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/bottomNavBar.dart';
 import 'create_group_screen.dart';
 import 'all_groups_screen.dart';
+import 'group_details_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -231,13 +232,21 @@ class _MainScreenState extends State<MainScreen> {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      _GroupCard(
-                        icon: Icons.flight_takeoff_rounded,
-                        iconBackground: const Color(0xFFEAF6E9),
-                        title: "Viaje a Madrid",
-                        subtitle: "3 miembros • 3 gastos",
-                        amount: "+\$45.00",
-                      ),
+                 GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const GroupDetailsScreen()),
+                    );
+                  },
+                    child: _GroupCard(
+                      icon: Icons.flight_takeoff_rounded,
+                      iconBackground: const Color(0xFFEAF6E9),
+                      title: "Viaje a Madrid",
+                      subtitle: "3 miembros • 3 gastos",
+                      amount: "+\$45.00",
+                    ),
+                  ),
                       _GroupCard(
                         icon: Icons.home_rounded,
                         iconBackground: const Color(0xFFEAF6E9),

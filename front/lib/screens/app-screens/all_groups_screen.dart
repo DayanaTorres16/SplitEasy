@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'create_group_screen.dart';
+import 'group_details_screen.dart';
 
 class AllGroupsScreen extends StatelessWidget {
   const AllGroupsScreen({super.key});
@@ -194,90 +195,98 @@ class _GroupTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE1E7E2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: iconBackground,
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const GroupDetailsScreen()),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE1E7E2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: const Color(0xFF13BE61), size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: iconBackground,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFF13BE61), size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    members,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF62706A),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    totals,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF7F8A84),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  members,
-                  style: const TextStyle(
+                  debtLabel,
+                  style: TextStyle(
                     fontSize: 13,
-                    color: Color(0xFF62706A),
+                    color: showAmount ? amountColor : const Color(0xFF69756F),
                   ),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  totals,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF7F8A84),
+                const SizedBox(height: 2),
+                if (showAmount)
+                  Text(
+                    '\$$amount',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: amountColor,
+                    ),
                   ),
-                ),
               ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                debtLabel,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: showAmount ? amountColor : const Color(0xFF69756F),
-                ),
-              ),
-              const SizedBox(height: 2),
-              if (showAmount)
-                Text(
-                  '\$$amount',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: amountColor,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 8),
-          const Icon(Icons.chevron_right, color: Color(0xFF7D8681)),
-        ],
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, color: Color(0xFF7D8681)),
+          ],
+        ),
       ),
     );
   }
