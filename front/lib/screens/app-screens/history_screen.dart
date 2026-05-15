@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/bottomNavBar.dart';
+import 'add_expense_screen.dart'; // Asegúrate de tener este archivo creado
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -9,17 +10,7 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  int _selectedIndex = 1; // Índice 1 para Historial
-
-  void _onItemTapped(int index) {
-      if (index == 0) {
-        Navigator.pop(context); // Esto te regresa al Home
-      } else {
-        setState(() {
-          _selectedIndex = index;
-        });
-      }
-    }
+  // Eliminamos _onItemTapped porque el BottomNavBar ahora es global y autónomo
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +18,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       backgroundColor: const Color(0xFFF6F8F5),
       body: Column(
         children: [
-          // Header Verde con Buscador
+          // Header Verde con Buscador y Botón Nuevo
           Container(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
             decoration: const BoxDecoration(
@@ -41,21 +32,36 @@ class _HistoryScreenState extends State<HistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Alinea la flecha y el botón "+" a los extremos
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context), // Al tocar la flecha, vuelve atrás
-                      child: CircleAvatar(
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        child: const Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Text("Historial", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                        Text("5 gastos", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                        GestureDetector(
+                          onTap: () => Navigator.pop(context),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            child: const Icon(Icons.arrow_back, color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 15),
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Historial", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                            Text("5 gastos", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                          ],
+                        ),
                       ],
+                    ),
+                    // --- NUEVO BOTÓN AÑADIR GASTO ---
+                    IconButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AddExpenseScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.add_circle, color: Colors.white, size: 32),
                     ),
                   ],
                 ),
@@ -151,8 +157,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavBar(
-              currentIndex: 1,
+      bottomNavigationBar: const BottomNavBar(
+        currentIndex: 1,
       ),
     );
   }
