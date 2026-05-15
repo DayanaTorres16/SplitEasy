@@ -3,7 +3,6 @@ import '../../widgets/bottomNavBar.dart';
 import 'create_group_screen.dart';
 import 'all_groups_screen.dart';
 import 'group_details_screen.dart';
-// Se eliminó el import de history_screen porque la navegación es global ahora
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,7 +12,6 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  // El índice fijo para esta pantalla es 0
   final int _selectedIndex = 0;
 
   @override
@@ -23,7 +21,6 @@ class _MainScreenState extends State<MainScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- HEADER: SALUDO Y LOGO ---
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
               child: Row(
@@ -71,7 +68,6 @@ class _MainScreenState extends State<MainScreen> {
               ),
             ),
             
-            // --- CUERPO BLANCO REDONDEADO ---
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -87,7 +83,6 @@ class _MainScreenState extends State<MainScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // TARJETA DE BALANCE
                       Container(
                         width: double.infinity,
                         decoration: BoxDecoration(
@@ -143,7 +138,6 @@ class _MainScreenState extends State<MainScreen> {
                       
                       const SizedBox(height: 18),
                       
-                      // BOTONES DE ACCIÓN (Crear y Ver Grupos)
                       Row(
                         children: [
                           Expanded(
@@ -190,7 +184,6 @@ class _MainScreenState extends State<MainScreen> {
                       
                       const SizedBox(height: 22),
                       
-                      // LISTA DE GRUPOS RECIENTES
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -210,7 +203,6 @@ class _MainScreenState extends State<MainScreen> {
                       
                       const SizedBox(height: 6),
                       
-                      // CARDS DE GRUPOS
                       GestureDetector(
                         onTap: () => Navigator.push(
                           context, 
@@ -246,16 +238,12 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      // --- NAVEGACIÓN GLOBAL ---
-      // Solo pasamos el índice. La lógica de clic vive dentro del widget.
       bottomNavigationBar: BottomNavBar(
         currentIndex: _selectedIndex,
       ),
     );
   }
 }
-
-// --- WIDGETS AUXILIARES ---
 
 class _SummaryChip extends StatelessWidget {
   final Color backgroundColor;

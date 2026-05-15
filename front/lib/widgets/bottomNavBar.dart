@@ -12,7 +12,7 @@ class BottomNavBar extends StatelessWidget {
   }) : super(key: key);
 
   void _navigateTo(BuildContext context, int index) {
-    if (index == currentIndex) return; // No recargar si ya estamos ahí
+    if (index == currentIndex) return; 
 
     switch (index) {
       case 0:
@@ -37,7 +37,7 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
-      onTap: (index) => _navigateTo(context, index), // Aquí se maneja TODO
+      onTap: (index) => _navigateTo(context, index), 
       selectedItemColor: Colors.green,
       unselectedItemColor: Colors.grey,
       items: const [
