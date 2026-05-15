@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/bottomNavBar.dart';
-import 'add_expense_screen.dart'; // Asegúrate de tener este archivo creado
+import 'add_expense_screen.dart'; 
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -10,7 +10,6 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  // Eliminamos _onItemTapped porque el BottomNavBar ahora es global y autónomo
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +17,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       backgroundColor: const Color(0xFFF6F8F5),
       body: Column(
         children: [
-          // Header Verde con Buscador y Botón Nuevo
           Container(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
             decoration: const BoxDecoration(
@@ -32,7 +30,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Alinea la flecha y el botón "+" a los extremos
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween, 
                   children: [
                     Row(
                       children: [
@@ -53,7 +51,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ],
                     ),
-                    // --- NUEVO BOTÓN AÑADIR GASTO ---
                     IconButton(
                       onPressed: () {
                         Navigator.push(
@@ -66,7 +63,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                // Buscador
                 TextField(
                   decoration: InputDecoration(
                     hintText: "Buscar gastos...",
@@ -84,7 +80,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
           
-          // Filtros (Chips horizontales)
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 15),
             child: SingleChildScrollView(
@@ -100,7 +95,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
           ),
 
-          // Lista de Gastos
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -163,8 +157,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 }
-
-// --- Widgets de apoyo ---
 
 class _FilterChip extends StatelessWidget {
   final String label;

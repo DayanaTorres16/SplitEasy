@@ -8,7 +8,6 @@ class AddExpenseScreen extends StatefulWidget {
 }
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
-  // Estados para la selección
   String selectedCategory = "Comida";
   String paidBy = "Tú";
   Map<String, bool> splitWith = {
@@ -16,11 +15,10 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     "Ana Martínez": true,
   };
 
-  // Función para mostrar el diálogo de confirmación
   void _showConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
-      barrierDismissible: false, // Obliga a interactuar con el diálogo
+      barrierDismissible: false, 
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -39,8 +37,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Cierra el diálogo
-                Navigator.pop(context); // Regresa al historial
+                Navigator.pop(context); 
+                Navigator.pop(context); 
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("Gasto guardado con éxito"),
@@ -66,7 +64,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       backgroundColor: const Color(0xFFF6F8F5),
       body: Column(
         children: [
-          // --- HEADER VERDE ---
           Container(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
             decoration: const BoxDecoration(
@@ -99,7 +96,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
             ),
           ),
 
-          // --- FORMULARIO ---
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -165,7 +161,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
                   const SizedBox(height: 30),
 
-                  // BOTÓN GUARDAR
                   SizedBox(
                     width: double.infinity,
                     height: 55,
@@ -189,7 +184,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     );
   }
 
-  // --- WIDGETS INTERNOS ---
 
   Widget _buildLabel(String text) {
     return Text(text, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87));
