@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_api.dart';
 
 class NewPasswordScreen extends StatelessWidget {
   const NewPasswordScreen({super.key});
@@ -50,49 +51,115 @@ class NewPasswordScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 30),
-            TextField(
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: "Nueva contraseña",
-                hintText: "Ingresa tu nueva contraseña",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                prefixIcon: const Icon(Icons.lock),
-                suffixIcon: const Icon(Icons.visibility),
-              ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: "Confirmar contraseña",
-                hintText: "Repite tu nueva contraseña",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                prefixIcon: const Icon(Icons.lock_outline),
-                suffixIcon: const Icon(Icons.visibility),
-              ),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF13BE61),
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/login');
-              },
-              child: const Text("Guardar contraseña"),
-            ),
+            _ResetForm(),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ResetForm extends StatefulWidget {
+  @override
+  State<_ResetForm> createState() => _ResetFormState();
+}
+
+class _ResetFormState extends State<_ResetForm> {
+  final TextEditingController _tokenController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is Map && args['token'] is String) {
+      _tokenController.text = args['token'];
+    }
+  }
+
+  @override
+  void dispose() {
+    _tokenController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final token = _tokenController.text.trim();
+    final newPassword = _passwordController.text;
+    final confirm = _confirmController.text;
+
+    if (token.isEmpty || newPassword.isEmpty || confirm.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Completa todos los campos')));
+      return;
+    }
+
+    if (newPassword != confirm) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Las contraseñas no coinciden')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await AuthApi.resetPassword(token: token, newPassword: newPassword, confirmPassword: confirm);
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, '/login');
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Contraseña actualizada correctamente')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          controller: _tokenController,
+          decoration: InputDecoration(
+            labelText: 'Token',
+            hintText: 'Pega el token aquí (si aplica)',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: _passwordController,
+          obscureText: true,
+          decoration: InputDecoration(
+            labelText: 'Nueva contraseña',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: _confirmController,
+          obscureText: true,
+          decoration: InputDecoration(
+            labelText: 'Confirmar contraseña',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+        ),
+        const SizedBox(height: 30),
+        SizedBox(
+          width: double.infinity,
+          height: 55,
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF13BE61),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+            ),
+            child: Text(_isLoading ? 'Guardando...' : 'Guardar contraseña'),
+          ),
+        ),
+      ],
     );
   }
 }
