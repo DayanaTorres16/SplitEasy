@@ -1,7 +1,78 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_api.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
+
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    final name = _nameController.text.trim();
+    final lastName = _lastNameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (name.isEmpty || lastName.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+      _showMessage('Completa todos los campos');
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showMessage('Las contraseñas no coinciden');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await AuthApi.register(
+        name: name,
+        lastName: lastName,
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Usuario registrado exitosamente')),
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage(error.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,8 +124,9 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 30),
 
             TextField(
+              controller: _nameController,
               decoration: InputDecoration(
-                labelText: "Nombre completo",
+                labelText: "Nombre",
                 hintText: "Tu nombre",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -65,6 +137,21 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             TextField(
+              controller: _lastNameController,
+              decoration: InputDecoration(
+                labelText: "Apellido",
+                hintText: "Tu apellido",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                prefixIcon: const Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 labelText: "Correo electrónico",
                 hintText: "tu@email.com",
@@ -77,10 +164,11 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             TextField(
+              controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
                 labelText: "Contraseña",
-                hintText: "Mínimo 6 caracteres",
+                hintText: "Mínimo 8 caracteres",
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -91,6 +179,7 @@ class RegisterScreen extends StatelessWidget {
             const SizedBox(height: 20),
 
             TextField(
+              controller: _confirmPasswordController,
               obscureText: true,
               decoration: InputDecoration(
                 labelText: "Confirmar contraseña",
@@ -113,9 +202,8 @@ class RegisterScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onPressed: () {
-              },
-              child: const Text("Crear cuenta"),
+              onPressed: _isLoading ? null : _register,
+              child: Text(_isLoading ? 'Creando...' : 'Crear cuenta'),
             ),
             const SizedBox(height: 20),
 

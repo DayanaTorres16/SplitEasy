@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/auth_api.dart';
 
 class ResetPasswordScreen extends StatelessWidget {
   const ResetPasswordScreen({super.key});
@@ -53,32 +54,7 @@ class ResetPasswordScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
-            TextField(
-              decoration: InputDecoration(
-                labelText: "Correo electrónico",
-                hintText: "tu@email.com",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                prefixIcon: const Icon(Icons.email),
-              ),
-            ),
-            const SizedBox(height: 30),
-
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF13BE61),
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                Navigator.pushNamed(context, '/reset-password-success');
-              },
-              child: const Text("Enviar instrucciones"),
-            ),
+            _EmailForm(),
             const SizedBox(height: 20),
 
             TextButton(
@@ -93,6 +69,74 @@ class ResetPasswordScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EmailForm extends StatefulWidget {
+  @override
+  State<_EmailForm> createState() => _EmailFormState();
+}
+
+class _EmailFormState extends State<_EmailForm> {
+  final TextEditingController _emailController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ingresa tu correo')));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await AuthApi.forgotPassword(email: email);
+      if (!mounted) return;
+      Navigator.pushNamed(context, '/reset-password-success');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        TextField(
+          controller: _emailController,
+          decoration: InputDecoration(
+            labelText: "Correo electrónico",
+            hintText: "tu@email.com",
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            prefixIcon: const Icon(Icons.email),
+          ),
+        ),
+        const SizedBox(height: 30),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF13BE61),
+            foregroundColor: Colors.white,
+            minimumSize: const Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          onPressed: _isLoading ? null : _submit,
+          child: Text(_isLoading ? 'Enviando...' : 'Enviar instrucciones'),
+        ),
+      ],
     );
   }
 }

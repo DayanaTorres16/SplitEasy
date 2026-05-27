@@ -1,8 +1,59 @@
 import 'package:flutter/material.dart';
 import '../app-screens/main_screen.dart';
+import '../../services/auth_api.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Completa correo y contraseña');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      await AuthApi.login(email: email, password: password);
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      _showMessage(error.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +88,7 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               TextField(
+                controller: _emailController,
                 decoration: InputDecoration(
                   labelText: "Correo electrónico",
                   hintText: "tu@email.com",
@@ -48,6 +100,7 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               TextField(
+                controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: "Contraseña",
@@ -68,15 +121,8 @@ class LoginScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MainScreen(),
-                    ),
-                  );
-                },
-                child: const Text("Iniciar sesión"),
+                onPressed: _isLoading ? null : _login,
+                child: Text(_isLoading ? 'Ingresando...' : 'Iniciar sesión'),
               ),
               const SizedBox(height: 20),
               TextButton(
