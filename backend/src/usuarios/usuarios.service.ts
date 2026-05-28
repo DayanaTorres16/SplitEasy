@@ -21,7 +21,6 @@ export class UsuariosService {
     return this.repo.findOne({ where: { id } });
   }
 
-  // CORREGIDO: Ahora mapea correctamente la propiedad 'email' con el argumento de la función
   findByEmail(email: string): Promise<Usuario | null> {
     return this.repo.findOne({ where: { email } }); 
   }
@@ -31,7 +30,6 @@ export class UsuariosService {
     return this.repo.save(user);
   }
 
-  // AGREGADO DE VUELTA: Tu AuthService lo necesita para el Reset Password por correo
   async updatePassword(id: number, passwordHash: string): Promise<Usuario> {
     const user = await this.repo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
@@ -39,7 +37,7 @@ export class UsuariosService {
     return this.repo.save(user);
   }
 
-  // --- MÉTODOS DE ACTUALIZACIÓN DE PERFIL ---
+  // MÉTODOS DE ACTUALIZACIÓN DE PERFIL
 
   async updateProfile(id: number, dto: UpdateUsuarioDto): Promise<Omit<Usuario, 'password_hash'>> {
     const usuario = await this.findById(id);

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/user_api.dart'; // Asegúrate de ajustar correctamente esta ruta
+import '../../services/user_api.dart'; 
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -30,13 +30,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  // Ejecuta la petición al backend si las validaciones del front pasan con éxito
   Future<void> _updatePasswordInBackend() async {
     final actual = _actualController.text;
     final nueva = _nuevaController.text;
     final confirmar = _confirmarController.text;
 
-    // 1. Validaciones iniciales del Frontend
     if (actual.isEmpty || nueva.isEmpty || confirmar.isEmpty) {
       _showMessage("Por favor, llena todos los campos", isError: true);
       return;
@@ -55,7 +53,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 2. Llamada al método que creamos en UserApi
+      // Llamada al método que creamos en UserApi
       final success = await UserApi.changePassword(
         passwordActual: actual,
         passwordNueva: nueva,
@@ -64,19 +62,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       if (success && mounted) {
         setState(() => _isLoading = false);
         
-        // Muestra el snackbar de éxito y saca al usuario de esta pantalla regresando al perfil
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Contraseña actualizada correctamente"),
             backgroundColor: Color(0xFF13BE61),
           ),
         );
-        Navigator.pop(context); // Sale de la pantalla de cambio de clave
+        Navigator.pop(context); 
       }
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        // Muestra el error exacto controlado que venga de NestJS (ej: "Contraseña actual incorrecta")
         _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
       }
     }
@@ -92,7 +88,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   }
 
   void _showConfirmDialog(BuildContext context) {
-    // Si algún campo esencial está vacío, no abrimos el diálogo y validamos directo
     if (_actualController.text.isEmpty || _nuevaController.text.isEmpty || _confirmarController.text.isEmpty) {
       _updatePasswordInBackend();
       return;
@@ -112,8 +107,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Cierra el modal de confirmación
-                _updatePasswordInBackend(); // Dispara la actualización real
+                Navigator.pop(context); 
+                _updatePasswordInBackend(); 
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF13BE61),
@@ -204,8 +199,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : () => _showConfirmDialog(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF13BE61), // Cambiado a verde activo para que resalte
-                        disabledBackgroundColor: const Color(0xFF98E2B9), // El color pastel se queda si está cargando
+                        backgroundColor: const Color(0xFF13BE61), 
+                        disabledBackgroundColor: const Color(0xFF98E2B9), 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         elevation: 0,
                       ),

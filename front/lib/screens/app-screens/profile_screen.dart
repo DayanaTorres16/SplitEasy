@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../../widgets/bottomNavBar.dart';
 import '../../services/user_api.dart';
-import '../../services/auth_api.dart'; // Importante para limpiar el token en el logout
+import '../../services/auth_api.dart'; 
 import 'change_password_screen.dart';
 import '../auth/login_screen.dart';
 
@@ -33,7 +33,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  // Carga los datos reales del usuario desde el backend en NestJS
   Future<void> _loadUserProfile() async {
     try {
       final data = await UserApi.getProfile();
@@ -52,7 +51,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Envía los datos editados usando la petición PATCH del UserApi
   Future<void> _saveProfile() async {
     final nuevoNombre = _nameController.text.trim();
     final nuevoEmail = _emailController.text.trim();
@@ -81,7 +79,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Destruye el token estático en memoria y redirige al LoginScreen
   Future<void> _logout() async {
     AuthApi.token = null; 
 

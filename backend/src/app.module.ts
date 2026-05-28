@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { GruposModule } from './group/group.module';
 
 @Module({
   imports: [
@@ -19,12 +20,13 @@ import { UsuariosModule } from './usuarios/usuarios.module';
         username: config.get<string>('DB_USERNAME'),
         password: config.get<string>('DB_PASSWORD'),
         database: config.get<string>('DB_NAME'),
-        autoLoadEntities: true,
+        autoLoadEntities: true, 
         synchronize: true, 
       }),
     }),
     UsuariosModule,
     AuthModule,
+    GruposModule, // <--- ¡Faltaba esta línea aquí!
   ],
 })
 export class AppModule {}
