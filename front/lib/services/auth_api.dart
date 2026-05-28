@@ -1,8 +1,10 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 class AuthApi {
+  // Variable estática para almacenar el JWT temporalmente en memoria de la app
+  static String? token;
+
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://localhost:3000',
@@ -13,11 +15,18 @@ class AuthApi {
   static Future<Map<String, dynamic>> login({
     required String email,
     required String password,
-  }) {
-    return _post('/login', {
+  }) async {
+    final response = await _post('/login', {
       'email': email,
       'password': password,
     });
+
+    // Guarda de forma automática el access_token si la autenticación fue exitosa
+    if (response.containsKey('access_token')) {
+      token = response['access_token'];
+    }
+
+    return response;
   }
 
   static Future<Map<String, dynamic>> register({
