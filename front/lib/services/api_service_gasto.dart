@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/gasto.dart';
 
 class ApiService {
-  final String baseUrl = "http://10.0.2.2:3000"; // 10.0.2.2 es el localhost para el emulador Android
+  final String baseUrl = "http://10.0.2.2:3000"; 
 
   Future<List<Gasto>> getGastos() async {
     final response = await http.get(Uri.parse('$baseUrl/gastos'));

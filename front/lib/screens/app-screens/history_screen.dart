@@ -5,7 +5,6 @@ import '../../widgets/bottomNavBar.dart';
 import 'add_expense_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// --- Modelo de Datos ---
 class Gasto {
   final int id;
   final double monto;
@@ -53,15 +52,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> fetchGrupos() async {
     try {
-      // 1. Recuperamos el token guardado (asumo que lo guardas en SharedPreferences)
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('access_token'); // O como se llame tu clave
+      final token = prefs.getString('access_token'); 
 
       final response = await http.get(
         Uri.parse('http://localhost:3000/grupos'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // <--- ¡AQUÍ ESTÁ LA MAGIA!
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -94,7 +92,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
       backgroundColor: const Color(0xFFF6F8F5),
       body: Column(
         children: [
-          // Header sin flecha
           Container(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
             decoration: const BoxDecoration(
@@ -125,7 +122,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
           // Filtros Dinámicos
           SizedBox(
             height: 60,
-            // Agregamos un chequeo: si grupos es nulo, no hace nada
             child: grupos == null 
               ? const Center(child: CircularProgressIndicator())
               : ListView.builder(
@@ -183,7 +179,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-// --- Componentes ---
 
 class _FilterChip extends StatelessWidget {
   final String label;

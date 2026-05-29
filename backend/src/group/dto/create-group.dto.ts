@@ -8,7 +8,6 @@ class MiembroDto {
 
   @IsEmail()
   @IsOptional()
-  // Intercepta strings vacíos y los transforma en undefined para que @IsOptional() actúe correctamente
   @Transform(({ value }) => value === '' ? undefined : value) 
   email?: string;
 }
@@ -18,7 +17,6 @@ export class CreateGroupDto {
   @IsNotEmpty()
   nombre!: string;
 
-  @IsString()
   @IsOptional()
   descripcion?: string;
 
@@ -26,8 +24,8 @@ export class CreateGroupDto {
   iconoIndex!: number;
 
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => MiembroDto)
+  @IsNumber({}, { each: true }) 
   @IsOptional()
-  miembros?: MiembroDto[];
+  miembrosIds?: number[]; 
+
 }

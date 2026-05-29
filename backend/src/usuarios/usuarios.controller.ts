@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, UseGuards, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UseGuards, Req, NotFoundException, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { UsuariosService } from './usuarios.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -38,5 +38,10 @@ export class UsuariosController {
   @Patch('logout')
   async logout() {
     return { message: 'Sesión cerrada correctamente en el servidor' };
+  }
+
+  @Get('buscar')
+  async buscarPorEmail(@Query('email') email: string) {
+    return await this.usuariosService.findByEmail(email);
   }
 }

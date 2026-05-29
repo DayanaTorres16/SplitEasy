@@ -11,7 +11,6 @@ export class GastosService {
   ) {}
 
   async findAll(): Promise<Expense[]> {
-    // Usamos la propiedad 'relations' con un objeto que apunta a las relaciones reales
     return await this.gastosRepository.find({
       relations: {
         pagadoPor: true,

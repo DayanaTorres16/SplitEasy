@@ -7,7 +7,7 @@ class UserApi {
   static const String baseUrl = AuthApi.baseUrl;
 
   static Future<Map<String, dynamic>?> getProfile() async {
-    final token = AuthApi.token; // Recupera el JWT de la sesión activa
+    final token = AuthApi.token; 
     final url = Uri.parse('$baseUrl/users/profile');
 
     final response = await http.get(
@@ -19,7 +19,7 @@ class UserApi {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body); // Retorna {id, nombre, email...}
+      return jsonDecode(response.body); 
     } else {
       throw Exception('Error al obtener los datos del perfil');
     }

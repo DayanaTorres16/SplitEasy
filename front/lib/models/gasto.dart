@@ -11,7 +11,6 @@ class Gasto {
     required this.fechaGasto, required this.descripcion, required this.grupoId,
   });
 
-  // Esto convierte el JSON que viene de NestJS a un objeto Gasto
   factory Gasto.fromJson(Map<String, dynamic> json) {
     return Gasto(
       id: json['id'],

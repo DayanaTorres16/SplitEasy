@@ -21,8 +21,8 @@ export class Grupo {
   @ManyToMany(() => Usuario, (usuario) => usuario.grupos, { cascade: true })
   @JoinTable({
     name: 'miembros_grupo', 
-    joinColumn: { name: 'grupo_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'usuario_id', referencedColumnName: 'id' }
+    joinColumn: { name: 'grupoId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'usuarioId', referencedColumnName: 'id' },
   })
-  miembros: Usuario[];
+  miembros!: Usuario[];
 }

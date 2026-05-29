@@ -1,9 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Usuario } from '../usuarios/usuario.entity'; 
-import { Grupo } from '../group/group.entity'; // <-- Corregido con ../ por la estructura de carpetas
+import { Grupo } from '../group/group.entity'; 
 
 @Entity('gastos')
-export class Expense { // <-- Asegúrate de que se llame exactamente 'Expense' con mayúscula
+export class Expense { 
   @PrimaryGeneratedColumn()
   id!: number;
 

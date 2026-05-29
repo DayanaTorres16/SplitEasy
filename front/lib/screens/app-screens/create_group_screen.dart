@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/group_api.dart'; // Asegúrate de ajustar correctamente la ruta a tu archivo
+import '../../services/group_api.dart'; 
 
 class CreateGroupScreen extends StatefulWidget {
   const CreateGroupScreen({super.key});
@@ -9,7 +9,6 @@ class CreateGroupScreen extends StatefulWidget {
 }
 
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
-  // Controladores para capturar el texto ingresado
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _memberNameController = TextEditingController();
@@ -18,7 +17,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   int _selectedIconIndex = 0;
   bool _isLoading = false;
 
-  // Lista local en memoria adaptada para permitir valores nulos en el email
   final List<Map<String, String?>> _addedMembers = [];
 
   final List<IconData> _groupIcons = [
@@ -52,7 +50,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     super.dispose();
   }
 
-  // Agrega un amigo a la lista interna que se muestra en pantalla
   void _addMemberToList() {
     final name = _memberNameController.text.trim();
     final email = _memberEmailController.text.trim();
@@ -67,16 +64,13 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     setState(() {
       _addedMembers.add({
         'nombre': name,
-        // Si el email está vacío, guardamos null en vez de "" para no romper NestJS
         'email': email.isEmpty ? null : email,
       });
-      // Limpia los campos individuales de registro para el siguiente amigo
       _memberNameController.clear();
       _memberEmailController.clear();
     });
   }
 
-  // Dispara el guardado definitivo hacia la base de datos de NestJS
   Future<void> _submitGroup() async {
     final groupName = _nameController.text.trim();
     if (groupName.isEmpty) {
@@ -89,7 +83,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Estructuramos el payload exactamente igual al CreateGroupDto del backend
       final Map<String, dynamic> groupPayload = {
         'nombre': groupName,
         'descripcion': _descriptionController.text.trim(),
@@ -107,7 +100,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             backgroundColor: Color(0xFF13BE61),
           ),
         );
-        Navigator.pop(context); // Regresa al Home
+        Navigator.pop(context); 
       }
     } catch (e) {
       if (mounted) {
@@ -130,7 +123,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header superior de la pantalla
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
               child: Row(
@@ -161,7 +153,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                 ],
               ),
             ),
-            // Contenedor principal del formulario
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -182,7 +173,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                         style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black),
                       ),
                       const SizedBox(height: 12),
-                      // Selector horizontal de Iconos
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(18),
@@ -295,7 +285,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: 12),
                       
-                      // El Organizador (Tú) - Tarjeta estática superior
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
@@ -328,7 +317,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: 8),
 
-                      // Lista en tiempo real de los amigos registrados localmente
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -385,7 +373,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Panel para ingresar el Nombre y Email del nuevo amigo
                       const Text(
                         "Añadir miembro",
                         style: TextStyle(fontSize: 14, color: Color(0xFF13BE61), fontWeight: FontWeight.w500),
@@ -445,7 +432,6 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: 32),
                       
-                      // Botón maestro final de creación
                       SizedBox(
                         width: double.infinity,
                         height: 54,

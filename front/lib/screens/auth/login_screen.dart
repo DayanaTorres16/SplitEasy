@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../app-screens/main_screen.dart';
 import '../../services/auth_api.dart';
+import '../../auth_config.dart'; 
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,11 +34,16 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await AuthApi.login(email: email, password: password);
+      final Map<String, dynamic> respuesta = await AuthApi.login(email: email, password: password);
+      
+      final String tokenRecibido = respuesta['access_token'];
+      
+      AuthConfig.token = tokenRecibido;
+
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
+        MaterialPageRoute(builder: (context) => const MainScreen()),
       );
     } catch (error) {
       if (!mounted) return;
@@ -65,36 +71,18 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/logo.png',
-                height: 100,
-              ),
+              Image.asset('assets/logo.png', height: 100),
               const SizedBox(height: 20),
-              const Text(
-                "SplitEasy",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF13BE61),
-                ),
-              ),
+              const Text("SplitEasy", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF13BE61))),
               const SizedBox(height: 5),
-              const Text(
-                "Divide gastos fácilmente",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
-                ),
-              ),
+              const Text("Divide gastos fácilmente", style: TextStyle(fontSize: 16, color: Colors.grey)),
               const SizedBox(height: 40),
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: "Correo electrónico",
                   hintText: "tu@email.com",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   prefixIcon: const Icon(Icons.email),
                 ),
               ),
@@ -104,9 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: "Contraseña",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: const Icon(Icons.visibility),
                 ),
@@ -117,24 +103,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   backgroundColor: const Color(0xFF13BE61),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 onPressed: _isLoading ? null : _login,
                 child: Text(_isLoading ? 'Ingresando...' : 'Iniciar sesión'),
               ),
               const SizedBox(height: 20),
               TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/reset-password');
-                },
+                onPressed: () => Navigator.pushNamed(context, '/reset-password'),
                 child: const Text("¿Olvidaste tu contraseña?"),
               ),
               TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/register');
-                },
+                onPressed: () => Navigator.pushNamed(context, '/register'),
                 child: const Text("¿No tienes cuenta? Regístrate"),
               ),
             ],

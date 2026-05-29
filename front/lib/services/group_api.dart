@@ -1,10 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'auth_api.dart'; // Importamos AuthApi para usar el respaldo en memoria
+import 'auth_api.dart'; 
 
 class GroupApi {
-  // Configurado para apuntar a NestJS local desde un entorno Web
   static const String _baseUrl = 'http://localhost:3000/grupos'; 
 
   static const _storage = FlutterSecureStorage(
@@ -15,15 +14,11 @@ class GroupApi {
 
   static Future<bool> createGroup(Map<String, dynamic> groupData) async {
     try {
-      // 1. Intentamos leer del almacenamiento seguro de la Web
       String? token = await _storage.read(key: 'jwt_token');
-      
-      // 2. Si el navegador lo devolvió nulo, usamos el token guardado en memoria como salvavidas
       if (token == null || token.isEmpty) {
         token = AuthApi.token;
       }
       
-      // 👁️ CHISMOSO 4: Ver el estado del token justo antes de enviar la petición
       print("==================================================");
       print("=== INTENTO DE LEER TOKEN EN CREAR GRUPO ===");
       print("Token recuperado para enviar: $token");
@@ -33,17 +28,15 @@ class GroupApi {
         throw Exception('No se encontró un token de autenticación válido.');
       }
 
-      // Hacer la petición HTTP POST hacia NestJS
       final response = await http.post(
         Uri.parse(_baseUrl),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Inyección del token Bearer
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode(groupData),
       );
 
-      // Evaluar la respuesta del servidor (201 Created)
       if (response.statusCode == 201) {
         return true;
       } else {
@@ -52,6 +45,54 @@ class GroupApi {
       }
     } catch (e) {
       throw Exception('Error de conexión: $e');
+    }
+  }
+
+  static Future<bool> createExpense({
+    required String grupoId,
+    required double monto,
+    required String descripcion,
+    required String categoria,
+  }) async {
+    try {
+      String? token = await _storage.read(key: 'jwt_token');
+      if (token == null || token.isEmpty) {
+        token = AuthApi.token;
+      }
+
+      print("==================================================");
+      print("=== INTENTO DE LEER TOKEN EN CREAR GASTO ===");
+      print("Token recuperado para enviar gasto: $token");
+      print("==================================================");
+
+      if (token == null || token.isEmpty) {
+        throw Exception('No se encontró un token de autenticación válido.');
+      }
+
+      final Map<String, dynamic> expenseData = {
+        "monto": monto,
+        "descripcion": descripcion,
+        "categoria": categoria,
+        "grupoId": grupoId,
+      };
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/gasto'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(expenseData),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        final errorResponse = jsonDecode(response.body);
+        throw Exception(errorResponse['message'] ?? 'Error al registrar el gasto');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión al guardar gasto: $e');
     }
   }
 }

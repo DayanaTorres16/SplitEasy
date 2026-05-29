@@ -32,7 +32,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 Future<void> _cargarDatos() async {
     try {
       debugPrint("Intentando conectar con el servidor...");
-      // Intentamos llamar a tu servicio real
       final grupos = await _groupService.obtenerMisGrupos(AuthConfig.token);
       
       if (mounted) {
@@ -42,7 +41,6 @@ Future<void> _cargarDatos() async {
             _selectedGroup = grupos.first;
             _inicializarMiembros();
           } else {
-            // Si el servidor devuelve vacío, al menos muestra algo para no bloquear
             _grupos = []; 
           }
           _cargando = false;
@@ -50,10 +48,9 @@ Future<void> _cargarDatos() async {
       }
     } catch (e) {
       debugPrint("Error de conexión, cargando modo offline: $e");
-      // Si falla, al menos que cargue la interfaz para que tu amiga pueda seguir trabajando
       if (mounted) {
         setState(() {
-          _grupos = []; // O pon aquí un grupo de prueba si prefieres
+          _grupos = []; 
           _cargando = false;
         });
       }

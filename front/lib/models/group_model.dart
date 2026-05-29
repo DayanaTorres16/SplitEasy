@@ -7,7 +7,6 @@ class UsuarioMiembro {
 
   factory UsuarioMiembro.fromJson(Map<String, dynamic> json) {
     return UsuarioMiembro(
-      // Se añade manejo de nulos por seguridad
       id: json['id'] ?? 0, 
       nombre: json['nombre'] ?? 'Sin nombre',
       email: json['email'],
@@ -36,7 +35,7 @@ class GrupoModel {
       nombre: json['nombre'] ?? 'Sin nombre',
       descripcion: json['descripcion'] ?? '',
       iconoIndex: json['iconoIndex'] ?? 0,
-      miembros: [], // Lo ponemos vacío temporalmente para que no falle el mapeo
+      miembros: [], 
     );
   }
 }

@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthApi {
-  // Variable global en memoria para respaldar el token si la persistencia web falla
   static String? token;
 
   static const _storage = FlutterSecureStorage(
@@ -28,23 +27,19 @@ class AuthApi {
       'password': password,
     });
 
-    // 👁️ CHISMOSO 1: Ver qué nos está respondiendo NestJS exactamente
     print("==================================================");
     print("=== RESPUESTA COMPLETA DEL BACKEND EN LOGIN ===");
     print(response);
     print("==================================================");
 
-    // Buscamos 'access_token' o 'token' por si cambió el formato en el Backend
     final jwt = response['access_token'] ?? response['token'];
 
     if (jwt != null) {
-      token = jwt; // Guardado en memoria volátil
-      await _storage.write(key: 'jwt_token', value: jwt); // Guardado en navegador
+      token = jwt; 
+      await _storage.write(key: 'jwt_token', value: jwt); 
       
-      // 👁️ CHISMOSO 2: Confirmar que la app procesó el guardado
       print("¡Token detectado y guardado con éxito! -> $jwt");
     } else {
-      // 👁️ CHISMOSO 3: Advertencia por si las llaves no coinciden
       print("⚠️ ALERTA: No se encontró 'access_token' ni 'token' en la respuesta.");
     }
 
