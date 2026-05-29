@@ -179,6 +179,29 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
                         )).toList() ?? [const Text('Cargando...')],
                   ),
                 ),
+                const SizedBox(height: 12),
+                // Lista vertical con los nombres completos
+                if (_grupo != null && _grupo!.miembros.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: _grupo!.miembros.map((m) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              CircleAvatar(radius: 16, backgroundColor: Colors.grey.shade300, child: Text((m.nombre.isNotEmpty ? m.nombre[0] : '?').toUpperCase())),
+                              const SizedBox(width: 12),
+                              Expanded(child: Text(m.nombre, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600))),
+                              if (m.email != null && m.email!.isNotEmpty) Text(m.email!, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
 
                 const SizedBox(height: 25),
 
