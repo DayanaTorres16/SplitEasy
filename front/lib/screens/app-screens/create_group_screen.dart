@@ -11,13 +11,11 @@ class CreateGroupScreen extends StatefulWidget {
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _memberNameController = TextEditingController();
-  final TextEditingController _memberEmailController = TextEditingController();
 
   int _selectedIconIndex = 0;
   bool _isLoading = false;
-
-  final List<Map<String, String?>> _addedMembers = [];
+  List<Map<String, dynamic>> _registeredUsers = [];
+  final Set<int> _selectedUserIds = {};
 
   final List<IconData> _groupIcons = [
     Icons.paragliding,
@@ -45,30 +43,28 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
-    _memberNameController.dispose();
-    _memberEmailController.dispose();
     super.dispose();
   }
 
-  void _addMemberToList() {
-    final name = _memberNameController.text.trim();
-    final email = _memberEmailController.text.trim();
+  @override
+  void initState() {
+    super.initState();
+    _loadRegisteredUsers();
+  }
 
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El nombre del miembro es obligatorio')),
-      );
-      return;
+  Future<void> _loadRegisteredUsers() async {
+    try {
+      final users = await GroupApi.fetchUsers();
+      // debug log
+      print('fetchUsers returned ${users.length} users');
+      if (mounted) setState(() => _registeredUsers = users);
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudieron cargar usuarios registrados')));
     }
+  }
 
-    setState(() {
-      _addedMembers.add({
-        'nombre': name,
-        'email': email.isEmpty ? null : email,
-      });
-      _memberNameController.clear();
-      _memberEmailController.clear();
-    });
+  void _addMemberToList() {
+    // external members removed: no-op
   }
 
   Future<void> _submitGroup() async {
@@ -87,7 +83,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
         'nombre': groupName,
         'descripcion': _descriptionController.text.trim(),
         'iconoIndex': _selectedIconIndex,
-        'miembros': _addedMembers, 
+        'miembrosIds': _selectedUserIds.toList(),
       };
 
       // Invocación al servicio HTTP
@@ -285,6 +281,39 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: 12),
                       
+                      // Lista de usuarios registrados (seleccionables)
+                      if (_registeredUsers.isNotEmpty) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F8ED),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            children: _registeredUsers.map((u) {
+                              final id = u['id'] is int ? u['id'] as int : int.tryParse(u['id'].toString());
+                              final nombre = u['nombre'] ?? '';
+                              final email = u['email'] ?? '';
+                              return CheckboxListTile(
+                                value: id != null && _selectedUserIds.contains(id),
+                                onChanged: (v) {
+                                  if (id == null) return;
+                                  setState(() {
+                                    if (v == true) _selectedUserIds.add(id);
+                                    else _selectedUserIds.remove(id);
+                                  });
+                                },
+                                title: Text(nombre.toString()),
+                                subtitle: email.toString().isNotEmpty ? Text(email.toString()) : null,
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // Siempre mostrar el organizador (tú)
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
@@ -317,119 +346,7 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
                       ),
                       const SizedBox(height: 8),
 
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: _addedMembers.length,
-                        itemBuilder: (context, index) {
-                          final member = _addedMembers[index];
-                          final hasEmail = member['email'] != null && member['email']!.isNotEmpty;
-                          
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle),
-                                    child: Center(
-                                      child: Text(
-                                        member['nombre']!.isNotEmpty ? member['nombre']!.substring(0, 1).toUpperCase() : '?',
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(member['nombre']!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black)),
-                                        if (hasEmail)
-                                          Text(member['email']!, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                      ],
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
-                                    onPressed: () {
-                                      setState(() => _addedMembers.removeAt(index));
-                                    },
-                                  )
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
                       const SizedBox(height: 12),
-
-                      const Text(
-                        "Añadir miembro",
-                        style: TextStyle(fontSize: 14, color: Color(0xFF13BE61), fontWeight: FontWeight.w500),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFD5EAD9)),
-                        ),
-                        child: TextField(
-                          controller: _memberNameController,
-                          decoration: const InputDecoration(
-                            hintText: "Nombre del amigo",
-                            hintStyle: TextStyle(color: Color(0xFFB0BFB8), fontSize: 14),
-                            border: InputBorder.none,
-                          ),
-                          style: const TextStyle(fontSize: 14, color: Colors.black),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFD5EAD9)),
-                        ),
-                        child: TextField(
-                          controller: _memberEmailController,
-                          decoration: const InputDecoration(
-                            hintText: "Email (opcional para invitar)",
-                            hintStyle: TextStyle(color: Color(0xFFB0BFB8), fontSize: 14),
-                            border: InputBorder.none,
-                          ),
-                          style: const TextStyle(fontSize: 14, color: Colors.black),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _addMemberToList,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE8F8ED),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: const Text(
-                            "+ Registrar en la lista",
-                            style: TextStyle(color: Color(0xFF13BE61), fontSize: 14, fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
                       const SizedBox(height: 32),
                       
                       SizedBox(

@@ -5,7 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { GruposModule } from './group/group.module';
 import { ExpenseModule } from './expense/expense.module';
-import { databaseConfig } from '../config/database.config';
+import { databaseConfig } from './config/database.config';
 
 @Module({
   imports: [
@@ -18,7 +18,7 @@ import { databaseConfig } from '../config/database.config';
     }),
     UsuariosModule,
     AuthModule,
-    GruposModule, 
+    GruposModule,
     ExpenseModule,
   ],
 })

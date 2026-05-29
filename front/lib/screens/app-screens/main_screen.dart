@@ -3,6 +3,9 @@ import '../../widgets/bottomNavBar.dart';
 import 'create_group_screen.dart';
 import 'all_groups_screen.dart';
 import 'group_details_screen.dart';
+import '../../services/group_service.dart';
+import '../../models/group_model.dart';
+import '../../auth_config.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -13,6 +16,8 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   final int _selectedIndex = 0;
+  List<GrupoModel> _grupos = [];
+  bool _cargando = true;
 
   @override
   Widget build(BuildContext context) {
@@ -202,34 +207,28 @@ class _MainScreenState extends State<MainScreen> {
                       ),
                       
                       const SizedBox(height: 6),
-                      
-                      GestureDetector(
-                        onTap: () => Navigator.push(
-                          context, 
-                          MaterialPageRoute(builder: (context) => const GroupDetailsScreen())
-                        ),
-                        child: const _GroupCard(
-                          icon: Icons.flight_takeoff_rounded,
-                          iconBackground: Color(0xFFEAF6E9),
-                          title: "Viaje a Madrid",
-                          subtitle: "3 miembros • 3 gastos",
-                          amount: "+\$45.00",
-                        ),
-                      ),
-                      const _GroupCard(
-                        icon: Icons.home_rounded,
-                        iconBackground: Color(0xFFEAF6E9),
-                        title: "Departamento",
-                        subtitle: "2 miembros • 2 gastos",
-                        amount: "+\$375.00",
-                      ),
-                      const _GroupCard(
-                        icon: Icons.cake_rounded,
-                        iconBackground: Color(0xFFEAF6E9),
-                        title: "Cena cumpleaños",
-                        subtitle: "4 miembros • 0 gastos",
-                        amount: null,
-                      ),
+
+                      // Recent groups from backend
+                      if (_cargando)
+                        const Center(child: CircularProgressIndicator())
+                      else if (_grupos.isEmpty) ...[
+                        const SizedBox(height: 8),
+                        const Text('No hay grupos recientes', style: TextStyle(color: Colors.black54)),
+                      ] else ..._grupos.take(3).map((g) {
+                        return GestureDetector(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => GroupDetailsScreen(groupId: g.id)),
+                          ),
+                          child: _GroupCard(
+                            icon: Icons.group,
+                            iconBackground: const Color(0xFFEAF6E9),
+                            title: g.nombre,
+                            subtitle: '${g.miembros.length} miembros',
+                            amount: null,
+                          ),
+                        );
+                      }).toList(),
                     ],
                   ),
                 ),
@@ -242,6 +241,28 @@ class _MainScreenState extends State<MainScreen> {
         currentIndex: _selectedIndex,
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroups();
+  }
+
+  Future<void> _loadGroups() async {
+    setState(() {
+      _cargando = true;
+    });
+    try {
+      final service = GroupService();
+      final grupos = await service.obtenerMisGrupos(AuthConfig.token);
+      if (mounted) setState(() {
+        _grupos = grupos;
+        _cargando = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() { _grupos = []; _cargando = false; });
+    }
   }
 }
 

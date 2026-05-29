@@ -1,14 +1,13 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsArray, ValidateNested, IsEmail } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
-class MiembroDto {
+class ExternalMemberDto {
   @IsString()
   @IsNotEmpty()
   nombre!: string;
 
-  @IsEmail()
   @IsOptional()
-  @Transform(({ value }) => value === '' ? undefined : value) 
+  @IsString()
   email?: string;
 }
 
@@ -24,8 +23,13 @@ export class CreateGroupDto {
   iconoIndex!: number;
 
   @IsArray()
-  @IsNumber({}, { each: true }) 
+  @IsNumber({}, { each: true })
   @IsOptional()
-  miembrosIds?: number[]; 
+  miembrosIds?: number[];
 
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExternalMemberDto)
+  miembros?: ExternalMemberDto[];
 }

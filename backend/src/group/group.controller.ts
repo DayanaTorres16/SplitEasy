@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Req, Get } from '@nestjs/common';
+import { Controller, Post, Body, Req, Get, Param } from '@nestjs/common';
 import { GruposService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { CreateExpenseDto } from '../add_expense/dto/create-expense.dto';
@@ -23,5 +23,11 @@ export class GruposController {
   async listarMisGrupos(@Req() req: any) {
     const usuarioId = req.user?.sub ?? 2;
     return this.gruposService.obtenerGruposPorUsuario(usuarioId);
+  }
+
+  @Get(':id')
+  async obtenerGrupo(@Param('id') id: string, @Req() req: any) {
+    // Optional auth check can be added here
+    return this.gruposService.obtenerPorId(id);
   }
 }

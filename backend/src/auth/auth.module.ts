@@ -6,7 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { MailService } from './mail.service';
 import { UsuariosModule } from '../usuarios/usuarios.module';
 import { PasswordResetToken } from './password-reset-token.entity';
 import type { StringValue } from 'ms';
@@ -27,7 +26,7 @@ import type { StringValue } from 'ms';
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy, MailService],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

@@ -35,7 +35,7 @@ class GrupoModel {
       nombre: json['nombre'] ?? 'Sin nombre',
       descripcion: json['descripcion'] ?? '',
       iconoIndex: json['iconoIndex'] ?? 0,
-      miembros: [], 
+      miembros: (json['miembros'] as List<dynamic>?)?.map((m) => UsuarioMiembro.fromJson(m as Map<String, dynamic>)).toList() ?? [],
     );
   }
 }
