@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'auth_api.dart'; 
+import 'auth_api.dart';
+import 'api_config.dart';
 
 class GroupApi {
-  static const String _baseUrl = 'http://localhost:3000/grupos'; 
+  static final String _baseUrl =
+      '${ApiConfig.normalize(ApiConfig.baseUrl)}/grupos';
 
   static const _storage = FlutterSecureStorage(
-    webOptions: WebOptions(
-      dbName: 'SplitEasySecure',
-    ),
+    webOptions: WebOptions(dbName: 'SplitEasySecure'),
   );
 
   static Future<bool> createGroup(Map<String, dynamic> groupData) async {
@@ -18,7 +18,7 @@ class GroupApi {
       if (token == null || token.isEmpty) {
         token = AuthApi.token;
       }
-      
+
       print("==================================================");
       print("=== INTENTO DE LEER TOKEN EN CREAR GRUPO ===");
       print("Token recuperado para enviar: $token");
@@ -89,7 +89,9 @@ class GroupApi {
         return true;
       } else {
         final errorResponse = jsonDecode(response.body);
-        throw Exception(errorResponse['message'] ?? 'Error al registrar el gasto');
+        throw Exception(
+          errorResponse['message'] ?? 'Error al registrar el gasto',
+        );
       }
     } catch (e) {
       throw Exception('Error de conexión al guardar gasto: $e');

@@ -1,31 +1,34 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'auth_api.dart'; 
+import 'auth_api.dart';
+import 'api_config.dart';
 
 class UserApi {
-  
-  static const String baseUrl = AuthApi.baseUrl;
+  static final String baseUrl = ApiConfig.normalize(AuthApi.baseUrl);
 
   static Future<Map<String, dynamic>?> getProfile() async {
-    final token = AuthApi.token; 
+    final token = AuthApi.token;
     final url = Uri.parse('$baseUrl/users/profile');
 
     final response = await http.get(
       url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token', 
+        'Authorization': 'Bearer $token',
       },
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body); 
+      return jsonDecode(response.body);
     } else {
       throw Exception('Error al obtener los datos del perfil');
     }
   }
 
-  static Future<bool> updateProfile({required String nombre, required String email}) async {
+  static Future<bool> updateProfile({
+    required String nombre,
+    required String email,
+  }) async {
     final token = AuthApi.token;
     final url = Uri.parse('$baseUrl/users/profile');
 
@@ -35,10 +38,7 @@ class UserApi {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({
-        'nombre': nombre,
-        'email': email,
-      }),
+      body: jsonEncode({'nombre': nombre, 'email': email}),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {

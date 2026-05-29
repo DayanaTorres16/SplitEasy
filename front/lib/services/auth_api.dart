@@ -1,20 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'api_config.dart';
 
 class AuthApi {
   static String? token;
 
   static const _storage = FlutterSecureStorage(
-    webOptions: WebOptions(
-      dbName: 'SplitEasySecure',
-    ),
+    webOptions: WebOptions(dbName: 'SplitEasySecure'),
   );
 
-  static const String baseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:3000',
-  );
+  static final String baseUrl = ApiConfig.normalize(ApiConfig.baseUrl);
 
   static Uri _uri(String path) => Uri.parse('$baseUrl/auth$path');
 
@@ -35,12 +31,14 @@ class AuthApi {
     final jwt = response['access_token'] ?? response['token'];
 
     if (jwt != null) {
-      token = jwt; 
-      await _storage.write(key: 'jwt_token', value: jwt); 
-      
+      token = jwt;
+      await _storage.write(key: 'jwt_token', value: jwt);
+
       print("¡Token detectado y guardado con éxito! -> $jwt");
     } else {
-      print("⚠️ ALERTA: No se encontró 'access_token' ni 'token' en la respuesta.");
+      print(
+        "⚠️ ALERTA: No se encontró 'access_token' ni 'token' en la respuesta.",
+      );
     }
 
     return response;
@@ -60,12 +58,8 @@ class AuthApi {
     });
   }
 
-  static Future<Map<String, dynamic>> forgotPassword({
-    required String email,
-  }) {
-    return _post('/forgot-password', {
-      'email': email,
-    });
+  static Future<Map<String, dynamic>> forgotPassword({required String email}) {
+    return _post('/forgot-password', {'email': email});
   }
 
   static Future<Map<String, dynamic>> resetPassword({
@@ -102,7 +96,9 @@ class AuthApi {
       return {'data': decoded};
     }
 
-    throw Exception(_extractMessage(decoded) ?? 'Error al conectar con el servidor');
+    throw Exception(
+      _extractMessage(decoded) ?? 'Error al conectar con el servidor',
+    );
   }
 
   static String? _extractMessage(dynamic data) {

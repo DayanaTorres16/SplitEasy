@@ -1,11 +1,15 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { MailService } from './mail.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { PasswordResetToken } from './password-reset-token.entity';
+import { IsNull, MoreThan, Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +17,8 @@ export class AuthService {
     private readonly usuariosService: UsuariosService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
+    @InjectRepository(PasswordResetToken)
+    private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -65,8 +71,20 @@ export class AuthService {
       return { message: 'Correo no registrado' };
     }
 
-    const payload = { sub: usuario.id, email: usuario.email };
-    const token = this.jwtService.sign(payload, { expiresIn: '15m' });
+    await this.passwordResetTokenRepository.delete({ userId: usuario.id });
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await this.passwordResetTokenRepository.save(
+      this.passwordResetTokenRepository.create({
+        userId: usuario.id,
+        tokenHash,
+        expiresAt,
+        usedAt: null,
+      }),
+    );
 
     const frontUrl = process.env.FRONT_URL ?? 'http://localhost:3000';
     const resetLink = `${frontUrl}/new-password?token=${token}`;
@@ -74,7 +92,7 @@ export class AuthService {
     const result = await this.mailService.sendForgotPassword(usuario.email, resetLink);
 
     // If SendGrid failed but developer wants the token in response for testing, allow it
-    const devReturn = (process.env.SENDGRID_DEV_RETURN_TOKEN ?? 'false').toLowerCase() === 'true';
+    const devReturn = (process.env.MAIL_DEV_RETURN_LINK ?? process.env.SENDGRID_DEV_RETURN_TOKEN ?? 'false').toLowerCase() === 'true';
     if (!result.sent && devReturn) {
       return { message: 'Correo (simulado) enviado', resetLink };
     }
@@ -84,8 +102,18 @@ export class AuthService {
 
   async resetPassword(dto: ResetPasswordDto) {
     try {
-      const payload: any = this.jwtService.verify(dto.token);
-      const usuario = await this.usuariosService.findById(payload.sub);
+      const tokenHash = crypto.createHash('sha256').update(dto.token).digest('hex');
+      const resetToken = await this.passwordResetTokenRepository.findOne({
+        where: {
+          tokenHash,
+          usedAt: IsNull(),
+          expiresAt: MoreThan(new Date()),
+        },
+      });
+
+      if (!resetToken) return { message: 'Token inválido o expirado' };
+
+      const usuario = await this.usuariosService.findById(resetToken.userId);
       if (!usuario) return { message: 'Usuario no encontrado' };
 
       if (dto.newPassword !== dto.confirmPassword) {
@@ -94,6 +122,8 @@ export class AuthService {
 
       const hashed = await bcrypt.hash(dto.newPassword, 10);
       await this.usuariosService.updatePassword(usuario.id, hashed);
+      resetToken.usedAt = new Date();
+      await this.passwordResetTokenRepository.save(resetToken);
 
       return { message: 'Contraseña actualizada correctamente' };
     } catch (err) {

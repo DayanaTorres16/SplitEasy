@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../../widgets/bottomNavBar.dart';
 import 'add_expense_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/api_config.dart';
 
 class Gasto {
   final int id;
@@ -13,11 +14,11 @@ class Gasto {
   final String descripcion;
 
   Gasto({
-    required this.id, 
-    required this.monto, 
-    required this.categoria, 
-    required this.fechaGasto, 
-    required this.descripcion
+    required this.id,
+    required this.monto,
+    required this.categoria,
+    required this.fechaGasto,
+    required this.descripcion,
   });
 
   factory Gasto.fromJson(Map<String, dynamic> json) {
@@ -26,8 +27,8 @@ class Gasto {
       monto: double.tryParse(json['monto']?.toString() ?? '0') ?? 0.0,
       categoria: json['categoria'] ?? 'Sin categoría',
       descripcion: json['descripcion'] ?? 'Sin descripción',
-      fechaGasto: json['fecha_gasto'] != null 
-          ? DateTime.parse(json['fecha_gasto']) 
+      fechaGasto: json['fecha_gasto'] != null
+          ? DateTime.parse(json['fecha_gasto'])
           : DateTime.now(),
     );
   }
@@ -53,10 +54,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> fetchGrupos() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('access_token'); 
+      final token = prefs.getString('access_token');
 
       final response = await http.get(
-        Uri.parse('http://localhost:3000/grupos'),
+        Uri.parse('${ApiConfig.normalize(ApiConfig.baseUrl)}/grupos'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -66,7 +67,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (response.statusCode == 200) {
         List jsonResponse = json.decode(response.body);
         setState(() {
-          grupos = ["Todos", ...jsonResponse.map((g) => g['nombre'].toString())];
+          grupos = [
+            "Todos",
+            ...jsonResponse.map((g) => g['nombre'].toString()),
+          ];
         });
       } else {
         debugPrint("Error ${response.statusCode}: ${response.body}");
@@ -77,7 +81,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<List<Gasto>> fetchGastos() async {
-    final response = await http.get(Uri.parse('http://localhost:3000/gastos'));
+    final response = await http.get(
+      Uri.parse('${ApiConfig.normalize(ApiConfig.baseUrl)}/gastos'),
+    );
     if (response.statusCode == 200) {
       List jsonResponse = json.decode(response.body);
       return jsonResponse.map((data) => Gasto.fromJson(data)).toList();
@@ -107,37 +113,54 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Historial", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                    Text("Gastos registrados", style: TextStyle(color: Colors.white70, fontSize: 14)),
+                    Text(
+                      "Historial",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      "Gastos registrados",
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
                   ],
                 ),
                 IconButton(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AddExpenseScreen())),
-                  icon: const Icon(Icons.add_circle, color: Colors.white, size: 32),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddExpenseScreen(),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.add_circle,
+                    color: Colors.white,
+                    size: 32,
+                  ),
                 ),
               ],
             ),
           ),
-          
+
           // Filtros Dinámicos
           SizedBox(
             height: 60,
-            child: grupos == null 
-              ? const Center(child: CircularProgressIndicator())
-              : ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: grupos.length,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () => setState(() => selectedIndex = index),
-                      child: _FilterChip(
-                        label: grupos[index], 
-                        isSelected: selectedIndex == index
-                      ),
-                    );
-                  },
-                ),
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: grupos.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => setState(() => selectedIndex = index),
+                  child: _FilterChip(
+                    label: grupos[index],
+                    isSelected: selectedIndex == index,
+                  ),
+                );
+              },
+            ),
           ),
 
           // Lista dinámica
@@ -179,7 +202,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 }
 
-
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
@@ -193,17 +215,32 @@ class _FilterChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected ? const Color(0xFF13BE61) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? const Color(0xFF13BE61) : Colors.black12),
+        border: Border.all(
+          color: isSelected ? const Color(0xFF13BE61) : Colors.black12,
+        ),
       ),
-      child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }
 
 class _ExpenseCard extends StatelessWidget {
   final String title, group, paidBy, amount, category;
-  final IconData icon; 
-  const _ExpenseCard({required this.title, required this.group, required this.paidBy, required this.amount, required this.category, required this.icon});
+  final IconData icon;
+  const _ExpenseCard({
+    required this.title,
+    required this.group,
+    required this.paidBy,
+    required this.amount,
+    required this.category,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -213,13 +250,18 @@ class _ExpenseCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: const Color(0xFFE8F8ED), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F8ED),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: const Color(0xFF13BE61)),
           ),
           const SizedBox(width: 15),
@@ -227,18 +269,43 @@ class _ExpenseCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text("$group • Pagado por $paidBy", style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  "$group • Pagado por $paidBy",
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
                 const SizedBox(height: 5),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: const Color(0xFFDFF4E5), borderRadius: BorderRadius.circular(8)),
-                  child: Text(category, style: const TextStyle(color: Color(0xFF13BE61), fontSize: 11, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDFF4E5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      color: Color(0xFF13BE61),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          Text("\$$amount", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text(
+            "\$$amount",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
         ],
       ),
     );
