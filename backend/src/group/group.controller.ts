@@ -9,7 +9,7 @@ export class GruposController {
 
   @Post()
   async crearGrupo(@Body() createGroupDto: CreateGroupDto, @Req() req: any) {
-    const usuarioId = req.user?.sub ?? 2; 
+    const usuarioId = req.user?.sub ?? 2;
     return this.gruposService.crear(createGroupDto, usuarioId);
   }
 
@@ -26,7 +26,7 @@ export class GruposController {
   }
 
   @Get(':id')
-  async obtenerGrupo(@Param('id') id: string, @Req() req: any) {
+  async obtenerGrupo(@Param('id') id: string) {
     // Optional auth check can be added here
     return this.gruposService.obtenerPorId(id);
   }
