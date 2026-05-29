@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/group_service.dart';
+import '../../services/group_api.dart';
 import '../../models/group_model.dart';
 import '../../auth_config.dart';
 
@@ -39,12 +40,12 @@ Future<void> _cargarDatos() async {
           if (grupos.isNotEmpty) {
             _grupos = grupos;
             _selectedGroup = grupos.first;
-            _inicializarMiembros();
           } else {
             _grupos = []; 
           }
           _cargando = false;
         });
+        if (grupos.isNotEmpty) await _inicializarMiembros();
       }
     } catch (e) {
       debugPrint("Error de conexión, cargando modo offline: $e");
@@ -57,12 +58,54 @@ Future<void> _cargarDatos() async {
     }
   }
 
-  void _inicializarMiembros() {
-    if (_selectedGroup != null) {
-      _splitWith = {};
-      _paidBy = _selectedGroup!.miembros.isNotEmpty ? _selectedGroup!.miembros.first : null;
-      for (var m in _selectedGroup!.miembros) {
-        _splitWith[m.id] = true;
+  Future<void> _inicializarMiembros() async {
+    if (_selectedGroup == null) return;
+    try {
+      final data = await GroupApi.fetchGroup(_selectedGroup!.id);
+      Map<String, dynamic> grupoJson;
+      if (data.containsKey('grupo') && data['grupo'] is Map<String, dynamic>) {
+        grupoJson = Map<String, dynamic>.from(data['grupo'] as Map);
+      } else {
+        grupoJson = Map<String, dynamic>.from(data);
+      }
+
+      final fetchedGroup = GrupoModel.fromJson(grupoJson);
+
+      if (mounted) {
+        final idx = _grupos.indexWhere((g) => g.id == fetchedGroup.id);
+        if (idx != -1) {
+          setState(() {
+            _grupos[idx] = fetchedGroup;
+            _selectedGroup = _grupos[idx];
+            _splitWith = {};
+            _paidBy = fetchedGroup.miembros.isNotEmpty ? fetchedGroup.miembros.first : null;
+            for (var m in fetchedGroup.miembros) {
+              _splitWith[m.id] = true;
+            }
+          });
+        } else {
+          setState(() {
+            _grupos.add(fetchedGroup);
+            _selectedGroup = fetchedGroup;
+            _splitWith = {};
+            _paidBy = fetchedGroup.miembros.isNotEmpty ? fetchedGroup.miembros.first : null;
+            for (var m in fetchedGroup.miembros) {
+              _splitWith[m.id] = true;
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("No se pudo cargar miembros del grupo: $e");
+      // fallback: ensure map initialized from whatever we already have
+      if (mounted && _selectedGroup != null) {
+        setState(() {
+          _splitWith = {};
+          _paidBy = _selectedGroup!.miembros.isNotEmpty ? _selectedGroup!.miembros.first : null;
+          for (var m in _selectedGroup!.miembros) {
+            _splitWith[m.id] = true;
+          }
+        });
       }
     }
   }
@@ -143,10 +186,10 @@ Future<void> _cargarDatos() async {
           value: _selectedGroup,
           isExpanded: true,
           items: _grupos.map((g) => DropdownMenuItem(value: g, child: Text(g.nombre))).toList(),
-          onChanged: (val) => setState(() {
-            _selectedGroup = val;
+          onChanged: (val) {
+            setState(() => _selectedGroup = val);
             _inicializarMiembros();
-          }),
+          },
         ),
       ),
     );
