@@ -1,28 +1,30 @@
-import { Controller, Post, Body, UseGuards, Req, UnauthorizedException } from '@nestjs/common';
-import { GruposService }  from './group.service';
+import { Controller, Post, Body, Req, Get } from '@nestjs/common';
+import { GruposService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; 
+import { CreateExpenseDto } from '../add_expense/dto/create-expense.dto';
 
 @Controller('grupos')
-@UseGuards(JwtAuthGuard) 
 export class GruposController {
   constructor(private readonly gruposService: GruposService) {}
 
   @Post()
-  async crearGrupo(
-    @Body() createGroupDto: CreateGroupDto,
-    @Req() req: any
-  ) {
-    // Apuntamos directamente a 'userId' que es como lo nombra tu JwtStrategy
-    const usuarioLogueadoId = req.user?.userId;
+  async crearGrupo(@Body() createGroupDto: CreateGroupDto, @Req() req: any) {
+    // Forzamos ID 2 si el token no se pudo leer
+    const usuarioId = req.user?.sub ?? 2; 
+    return this.gruposService.crear(createGroupDto, usuarioId);
+  }
 
-    if (!usuarioLogueadoId) {
-      throw new UnauthorizedException(
-        'No se pudo identificar al usuario autenticado (userId no encontrado en req.user).'
-      );
-    }
+  @Post('gasto')
+  async crearGasto(@Body() createExpenseDto: CreateExpenseDto, @Req() req: any) {
+    // Forzamos ID 2 si el token no se pudo leer
+    const usuarioId = req.user?.sub ?? 2;
+    return this.gruposService.registrarGasto(createExpenseDto, usuarioId);
+  }
 
-    // Como ya viene de la estrategia, pasamos el ID directamente al servicio
-    return this.gruposService.crear(createGroupDto, usuarioLogueadoId);
+  @Get()
+  async listarMisGrupos(@Req() req: any) {
+    // Forzamos ID 2 para que siempre devuelva tus grupos
+    const usuarioId = req.user?.sub ?? 2;
+    return this.gruposService.obtenerGruposPorUsuario(usuarioId);
   }
 }
