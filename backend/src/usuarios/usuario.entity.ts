@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Grupo } from '../group/group.entity'
 
 @Entity('usuarios')
 export class Usuario {
@@ -16,4 +17,7 @@ export class Usuario {
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   fecha_registro!: Date;
+
+  @ManyToMany(() => Grupo, (grupo) => grupo.miembros)
+  grupos!: Grupo[];
 }

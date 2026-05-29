@@ -1,23 +1,47 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UseGuards, Req, NotFoundException, Query } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { UsuariosService } from './usuarios.service';
-import { Usuario } from './usuario.entity';
+import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
-@Controller('usuarios')
+@Controller('users')
+@UseGuards(AuthGuard('jwt'))
 export class UsuariosController {
-  constructor(private readonly service: UsuariosService) {}
+  constructor(private readonly usuariosService: UsuariosService) {}
 
-  @Get()
-  findAll(): Promise<Usuario[]> {
-    return this.service.findAll();
+  // GET Obtiene los datos del usuario logueado
+  @Get('profile')
+  async getProfile(@Req() req: any) {
+    const userId = req.user.userId; // Viene de tu JwtStrategy
+    const usuario = await this.usuariosService.findById(userId);
+    
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+    
+    const { password_hash, ...result } = usuario;
+    return result;
   }
 
-  @Get(':id')
-  findById(@Param('id') id: number): Promise<Usuario | null> {
-    return this.service.findById(id);
+  // PATCH Actualiza nombre o email
+  @Patch('profile')
+  async updateProfile(@Req() req: any, @Body() dto: UpdateUsuarioDto) {
+    const userId = req.user.userId;
+    return this.usuariosService.updateProfile(userId, dto);
   }
 
-  @Post()
-  create(@Body() body: Partial<Usuario>): Promise<Usuario> {
-    return this.service.create(body);
+  // PATCH Cambia la contraseña validando la anterior
+  @Patch('change-password')
+  async changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
+    const userId = req.user.userId;
+    return this.usuariosService.changePassword(userId, dto);
+  }
+
+  @Patch('logout')
+  async logout() {
+    return { message: 'Sesión cerrada correctamente en el servidor' };
+  }
+
+  @Get('buscar')
+  async buscarPorEmail(@Query('email') email: string) {
+    return await this.usuariosService.findByEmail(email);
   }
 }

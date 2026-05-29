@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../services/group_service.dart';
+import '../../models/group_model.dart';
+import '../../auth_config.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -8,275 +11,215 @@ class AddExpenseScreen extends StatefulWidget {
 }
 
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
-  String selectedCategory = "Comida";
-  String paidBy = "Tú";
-  Map<String, bool> splitWith = {
-    "Tú": true,
-    "Ana Martínez": true,
-  };
+  final _groupService = GroupService();
+  final TextEditingController _amountController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
-  void _showConfirmationDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, 
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Row(
-            children: [
-              Icon(Icons.help_outline, color: Color(0xFF13BE61)),
-              SizedBox(width: 10),
-              Text("¿Confirmar gasto?", style: TextStyle(fontWeight: FontWeight.bold)),
-            ],
-          ),
-          content: const Text("¿Estás seguro de que deseas registrar este gasto en el grupo 'Departamento'?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancelar", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); 
-                Navigator.pop(context); 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Gasto guardado con éxito"),
-                    backgroundColor: Color(0xFF13BE61),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF13BE61),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text("Guardar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
-          ],
-        );
-      },
-    );
+  GrupoModel? _selectedGroup;
+  List<GrupoModel> _grupos = [];
+  bool _cargando = true;
+
+  String selectedCategory = "Comida";
+  UsuarioMiembro? _paidBy;
+  Map<int, bool> _splitWith = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatos();
   }
+
+Future<void> _cargarDatos() async {
+    try {
+      debugPrint("Intentando conectar con el servidor...");
+      final grupos = await _groupService.obtenerMisGrupos(AuthConfig.token);
+      
+      if (mounted) {
+        setState(() {
+          if (grupos.isNotEmpty) {
+            _grupos = grupos;
+            _selectedGroup = grupos.first;
+            _inicializarMiembros();
+          } else {
+            _grupos = []; 
+          }
+          _cargando = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error de conexión, cargando modo offline: $e");
+      if (mounted) {
+        setState(() {
+          _grupos = []; 
+          _cargando = false;
+        });
+      }
+    }
+  }
+
+  void _inicializarMiembros() {
+    if (_selectedGroup != null) {
+      _splitWith = {};
+      _paidBy = _selectedGroup!.miembros.isNotEmpty ? _selectedGroup!.miembros.first : null;
+      for (var m in _selectedGroup!.miembros) {
+        _splitWith[m.id] = true;
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  String _getCurrentGroupName() => _selectedGroup?.nombre ?? "Selecciona un grupo";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8F5),
-      body: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-            decoration: const BoxDecoration(
-              color: Color(0xFF13BE61),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
-              ),
-            ),
-            child: Row(
+      body: _cargando
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white.withOpacity(0.2),
-                    child: const Icon(Icons.arrow_back, color: Colors.white),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Añadir gasto", 
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                    Text("🏠 Departamento", 
-                      style: TextStyle(color: Colors.white70, fontSize: 14)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLabel("Monto *"),
-                  _buildTextField(hintText: "\$ 0.00", isNumber: true),
-
-                  const SizedBox(height: 20),
-
-                  _buildLabel("Descripción *"),
-                  _buildTextField(hintText: "Ej: Cena en restaurante"),
-
-                  const SizedBox(height: 25),
-
-                  _buildLabel("Categoría"),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _categoryChip("Comida", Icons.restaurant, const Color(0xFFE8F8ED)),
-                      _categoryChip("Transporte", Icons.directions_car, const Color(0xFFE3F2FD)),
-                      _categoryChip("Entretenimiento", Icons.theater_comedy, const Color(0xFFF3E5F5)),
-                      _categoryChip("Compras", Icons.shopping_bag, const Color(0xFFFFF3E0)),
-                      _categoryChip("Hogar", Icons.home, const Color(0xFFEFEBE9)),
-                      _categoryChip("Servicios", Icons.electrical_services, const Color(0xFFE0F2F1)),
-                    ],
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  _buildLabel("Pagado por"),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      _userSelectableCard("Tú", "T", const Color(0xFF13BE61)),
-                      const SizedBox(width: 10),
-                      _userSelectableCard("Ana Martínez", "A", Colors.grey),
-                    ],
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  _buildLabel("Dividir entre"),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.black12),
-                    ),
+                _buildHeader(),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _splitCheckboxRow("Tú", "T", const Color(0xFF13BE61)),
-                        const Divider(height: 20),
-                        _splitCheckboxRow("Ana Martínez", "A", const Color(0xFF2196F3)),
+                        _buildLabel("Seleccionar Grupo *"),
+                        _buildGroupDropdown(),
+                        const SizedBox(height: 20),
+                        _buildLabel("Monto *"),
+                        _buildTextField(hintText: "\$ 0.00", isNumber: true, controller: _amountController),
+                        const SizedBox(height: 20),
+                        _buildLabel("Descripción *"),
+                        _buildTextField(hintText: "Ej: Cena", controller: _descriptionController),
+                        const SizedBox(height: 25),
+                        _buildLabel("Pagado por"),
+                        _buildPaidByRow(),
+                        const SizedBox(height: 25),
+                        _buildLabel("Dividir entre"),
+                        _buildSplitList(),
+                        const SizedBox(height: 30),
+                        _buildSaveButton(),
                       ],
                     ),
                   ),
-
-                  const SizedBox(height: 30),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 55,
-                    child: ElevatedButton(
-                      onPressed: () => _showConfirmationDialog(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF13BE61),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                        elevation: 0,
-                      ),
-                      child: const Text("Guardar gasto", 
-                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+      decoration: const BoxDecoration(
+          color: Color(0xFF13BE61),
+          borderRadius: BorderRadius.only(bottomLeft: Radius.circular(28), bottomRight: Radius.circular(28))),
+      child: Row(
+        children: [
+          GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: const CircleAvatar(backgroundColor: Colors.white24, child: Icon(Icons.arrow_back, color: Colors.white))),
+          const SizedBox(width: 15),
+          Expanded(child: Text("Añadir gasto\n${_getCurrentGroupName()}", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold))),
         ],
       ),
     );
   }
 
-
-  Widget _buildLabel(String text) {
-    return Text(text, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87));
-  }
-
-  Widget _buildTextField({required String hintText, bool isNumber = false}) {
+  Widget _buildGroupDropdown() {
     return Container(
-      margin: const EdgeInsets.only(top: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black12),
-      ),
-      child: TextField(
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: const TextStyle(color: Colors.black26),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black12)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<GrupoModel>(
+          value: _selectedGroup,
+          isExpanded: true,
+          items: _grupos.map((g) => DropdownMenuItem(value: g, child: Text(g.nombre))).toList(),
+          onChanged: (val) => setState(() {
+            _selectedGroup = val;
+            _inicializarMiembros();
+          }),
         ),
       ),
     );
   }
 
-  Widget _categoryChip(String label, IconData icon, Color color) {
-    bool isSelected = selectedCategory == label;
-    return GestureDetector(
-      onTap: () => setState(() => selectedCategory = label),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF13BE61) : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? Colors.transparent : Colors.black12),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.black54),
-            const SizedBox(width: 6),
-            Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontSize: 13)),
-          ],
-        ),
-      ),
+  Widget _buildPaidByRow() {
+    if (_selectedGroup == null) return const Text("Cargando grupo...");
+
+    final miembros = _selectedGroup!.miembros;
+
+    if (miembros.isEmpty) return const Text("El grupo no tiene miembros");
+
+    return Row(
+      children: miembros.map((m) {
+        if (m.id == 0 || m.nombre.isEmpty) {
+          debugPrint("¡ALERTA! Miembro con datos nulos detectado: $m");
+        }
+        return _userSelectableCard(m);
+      }).toList(),
     );
   }
 
-  Widget _userSelectableCard(String name, String initial, Color color) {
-    bool isSelected = paidBy == name;
+  Widget _userSelectableCard(UsuarioMiembro miembro) {
+    bool isSelected = _paidBy?.id == miembro.id;
+
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => paidBy = name),
+        onTap: () => setState(() => _paidBy = miembro),
         child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 5),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isSelected ? const Color(0xFF13BE61) : Colors.black12, width: 2),
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: isSelected ? const Color(0xFF13BE61) : Colors.grey.shade300,
-                child: Text(initial, style: const TextStyle(color: Colors.white, fontSize: 12)),
-              ),
-              const SizedBox(width: 10),
-              Expanded(child: Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis)),
-            ],
-          ),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: isSelected ? const Color(0xFF13BE61) : Colors.black12)),
+          child: Text(miembro.nombre, textAlign: TextAlign.center),
         ),
       ),
     );
   }
 
-  Widget _splitCheckboxRow(String name, String initial, Color avatarColor) {
-    return Row(
-      children: [
-        Checkbox(
-          value: splitWith[name],
-          activeColor: const Color(0xFF13BE61),
-          onChanged: (val) => setState(() => splitWith[name] = val!),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        ),
-        CircleAvatar(
-          radius: 14,
-          backgroundColor: avatarColor.withOpacity(0.2),
-          child: Text(initial, style: TextStyle(color: avatarColor, fontSize: 12, fontWeight: FontWeight.bold)),
-        ),
-        const SizedBox(width: 12),
-        Text(name, style: const TextStyle(fontSize: 15)),
-      ],
+  Widget _buildSplitList() {
+    if (_selectedGroup == null) return Container();
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black12)),
+      child: Column(
+        children: _selectedGroup!.miembros
+            .map((m) => CheckboxListTile(
+                  title: Text(m.nombre),
+                  value: _splitWith[m.id] ?? false,
+                  onChanged: (val) => setState(() => _splitWith[m.id] = val ?? false),
+                ))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) => Text(text, style: const TextStyle(fontWeight: FontWeight.bold));
+
+  Widget _buildTextField({required String hintText, bool isNumber = false, required TextEditingController controller}) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.black12)),
+      child: TextField(controller: controller, keyboardType: isNumber ? TextInputType.number : TextInputType.text, decoration: const InputDecoration(border: InputBorder.none)),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return ElevatedButton(
+      onPressed: () {},
+      child: const Text("Guardar"),
     );
   }
 }

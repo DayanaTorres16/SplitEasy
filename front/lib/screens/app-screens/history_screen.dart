@@ -1,6 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../../widgets/bottomNavBar.dart';
-import 'add_expense_screen.dart'; 
+import 'add_expense_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/api_config.dart';
+
+class Gasto {
+  final int id;
+  final double monto;
+  final String categoria;
+  final DateTime fechaGasto;
+  final String descripcion;
+
+  Gasto({
+    required this.id,
+    required this.monto,
+    required this.categoria,
+    required this.fechaGasto,
+    required this.descripcion,
+  });
+
+  factory Gasto.fromJson(Map<String, dynamic> json) {
+    return Gasto(
+      id: json['id'] ?? 0,
+      monto: double.tryParse(json['monto']?.toString() ?? '0') ?? 0.0,
+      categoria: json['categoria'] ?? 'Sin categoría',
+      descripcion: json['descripcion'] ?? 'Sin descripción',
+      fechaGasto: json['fecha_gasto'] != null
+          ? DateTime.parse(json['fecha_gasto'])
+          : DateTime.now(),
+    );
+  }
+}
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -10,6 +42,55 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
+  List<String> grupos = ["Todos"];
+  int selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchGrupos();
+  }
+
+  Future<void> fetchGrupos() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token');
+
+      final response = await http.get(
+        Uri.parse('${ApiConfig.normalize(ApiConfig.baseUrl)}/grupos'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        List jsonResponse = json.decode(response.body);
+        setState(() {
+          grupos = [
+            "Todos",
+            ...jsonResponse.map((g) => g['nombre'].toString()),
+          ];
+        });
+      } else {
+        debugPrint("Error ${response.statusCode}: ${response.body}");
+      }
+    } catch (e) {
+      debugPrint("Error de red: $e");
+    }
+  }
+
+  Future<List<Gasto>> fetchGastos() async {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.normalize(ApiConfig.baseUrl)}/gastos'),
+    );
+    if (response.statusCode == 200) {
+      List jsonResponse = json.decode(response.body);
+      return jsonResponse.map((data) => Gasto.fromJson(data)).toList();
+    } else {
+      throw Exception('Error al cargar datos');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,134 +107,97 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 bottomRight: Radius.circular(28),
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: CircleAvatar(
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            child: const Icon(Icons.arrow_back, color: Colors.white),
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Historial", style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-                            Text("5 gastos", style: TextStyle(color: Colors.white70, fontSize: 14)),
-                          ],
-                        ),
-                      ],
+                    Text(
+                      "Historial",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const AddExpenseScreen()),
-                        );
-                      },
-                      icon: const Icon(Icons.add_circle, color: Colors.white, size: 32),
+                    Text(
+                      "Gastos registrados",
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: "Buscar gastos...",
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none,
+                IconButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddExpenseScreen(),
                     ),
+                  ),
+                  icon: const Icon(
+                    Icons.add_circle,
+                    color: Colors.white,
+                    size: 32,
                   ),
                 ),
               ],
             ),
           ),
-          
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 15),
-            child: SingleChildScrollView(
+
+          // Filtros Dinámicos
+          SizedBox(
+            height: 60,
+            child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  _FilterChip(label: "Todos", isSelected: true),
-                  _FilterChip(label: "✈️ Viaje a Madrid"),
-                  _FilterChip(label: "🏠 Departamento"),
-                ],
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: grupos.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () => setState(() => selectedIndex = index),
+                  child: _FilterChip(
+                    label: grupos[index],
+                    isSelected: selectedIndex == index,
+                  ),
+                );
+              },
             ),
           ),
 
+          // Lista dinámica
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: const [
-                _SectionHeader(title: "Domingo, 10 De Mayo"),
-                _ExpenseCard(
-                  title: "Entradas museo",
-                  group: "Viaje a Madrid",
-                  paidBy: "Carlos López",
-                  amount: "60.00",
-                  category: "Entretenimiento",
-                  icon: Icons.flight_takeoff,
-                ),
-                
-                _SectionHeader(title: "Sábado, 9 De Mayo"),
-                _ExpenseCard(
-                  title: "Cena en restaurante",
-                  group: "Viaje a Madrid",
-                  paidBy: "Tú",
-                  amount: "120.00",
-                  category: "Comida",
-                  icon: Icons.restaurant,
-                ),
-                _ExpenseCard(
-                  title: "Uber al hotel",
-                  group: "Viaje a Madrid",
-                  paidBy: "María García",
-                  amount: "45.00",
-                  category: "Transporte",
-                  icon: Icons.local_taxi,
-                ),
+            child: FutureBuilder<List<Gasto>>(
+              future: fetchGastos(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text("No hay gastos registrados"));
+                }
 
-                _SectionHeader(title: "Lunes, 4 De Mayo"),
-                _ExpenseCard(
-                  title: "Servicios (luz, agua, internet)",
-                  group: "Departamento",
-                  paidBy: "Ana Martínez",
-                  amount: "150.00",
-                  category: "Servicios",
-                  icon: Icons.home,
-                ),
-
-                _SectionHeader(title: "Jueves, 30 De Abril"),
-                _ExpenseCard(
-                  title: "Alquiler mensual",
-                  group: "Departamento",
-                  paidBy: "Tú",
-                  amount: "900.00",
-                  category: "Hogar",
-                  icon: Icons.house,
-                ),
-              ],
+                final gastos = snapshot.data!;
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: gastos.length,
+                  itemBuilder: (context, index) {
+                    final g = gastos[index];
+                    return _ExpenseCard(
+                      title: g.descripcion,
+                      group: "General",
+                      paidBy: "Usuario",
+                      amount: g.monto.toStringAsFixed(2),
+                      category: g.categoria,
+                      icon: Icons.attach_money,
+                    );
+                  },
+                );
+              },
             ),
           ),
         ],
       ),
-      bottomNavigationBar: const BottomNavBar(
-        currentIndex: 1,
-      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
 }
@@ -166,32 +210,21 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(right: 10),
+      margin: const EdgeInsets.only(right: 10, top: 10, bottom: 10),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: isSelected ? const Color(0xFF13BE61) : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black12),
+        border: Border.all(
+          color: isSelected ? const Color(0xFF13BE61) : Colors.black12,
+        ),
       ),
-      child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black87, fontWeight: FontWeight.w500)),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-          const SizedBox(width: 8),
-          Text(title, style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -199,8 +232,15 @@ class _SectionHeader extends StatelessWidget {
 
 class _ExpenseCard extends StatelessWidget {
   final String title, group, paidBy, amount, category;
-  final IconData icon; 
-  const _ExpenseCard({required this.title, required this.group, required this.paidBy, required this.amount, required this.category, required this.icon});
+  final IconData icon;
+  const _ExpenseCard({
+    required this.title,
+    required this.group,
+    required this.paidBy,
+    required this.amount,
+    required this.category,
+    required this.icon,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -210,15 +250,18 @@ class _ExpenseCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+        ],
       ),
-      
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: const Color(0xFFE8F8ED), 
-            borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F8ED),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Icon(icon, color: const Color(0xFF13BE61)),
           ),
           const SizedBox(width: 15),
@@ -226,18 +269,43 @@ class _ExpenseCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text("$group • Pagado por $paidBy", style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  "$group • Pagado por $paidBy",
+                  style: const TextStyle(color: Colors.grey, fontSize: 13),
+                ),
                 const SizedBox(height: 5),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: const Color(0xFFDFF4E5), borderRadius: BorderRadius.circular(8)),
-                  child: Text(category, style: const TextStyle(color: Color(0xFF13BE61), fontSize: 11, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDFF4E5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    category,
+                    style: const TextStyle(
+                      color: Color(0xFF13BE61),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          Text("\$$amount", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text(
+            "\$$amount",
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
         ],
       ),
     );

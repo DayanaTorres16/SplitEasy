@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/user_api.dart'; 
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -8,11 +9,90 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+  // Estados para ocultar/mostrar texto
   bool _obscureActual = true;
   bool _obscureNueva = true;
   bool _obscureConfirmar = true;
 
+  // Estado de carga para la petición HTTP
+  bool _isLoading = false;
+
+  // Controladores de texto para capturar los inputs
+  final TextEditingController _actualController = TextEditingController();
+  final TextEditingController _nuevaController = TextEditingController();
+  final TextEditingController _confirmarController = TextEditingController();
+
+  @override
+  void dispose() {
+    _actualController.dispose();
+    _nuevaController.dispose();
+    _confirmarController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _updatePasswordInBackend() async {
+    final actual = _actualController.text;
+    final nueva = _nuevaController.text;
+    final confirmar = _confirmarController.text;
+
+    if (actual.isEmpty || nueva.isEmpty || confirmar.isEmpty) {
+      _showMessage("Por favor, llena todos los campos", isError: true);
+      return;
+    }
+
+    if (nueva != confirmar) {
+      _showMessage("La nueva contraseña y su confirmación no coinciden", isError: true);
+      return;
+    }
+
+    if (nueva.length < 6) {
+      _showMessage("La nueva contraseña debe tener al menos 6 caracteres", isError: true);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Llamada al método que creamos en UserApi
+      final success = await UserApi.changePassword(
+        passwordActual: actual,
+        passwordNueva: nueva,
+      );
+
+      if (success && mounted) {
+        setState(() => _isLoading = false);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Contraseña actualizada correctamente"),
+            backgroundColor: Color(0xFF13BE61),
+          ),
+        );
+        Navigator.pop(context); 
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showMessage(e.toString().replaceFirst('Exception: ', ''), isError: true);
+      }
+    }
+  }
+
+  void _showMessage(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.redAccent : const Color(0xFF13BE61),
+      ),
+    );
+  }
+
   void _showConfirmDialog(BuildContext context) {
+    if (_actualController.text.isEmpty || _nuevaController.text.isEmpty || _confirmarController.text.isEmpty) {
+      _updatePasswordInBackend();
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -28,13 +108,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context); 
-                Navigator.pop(context); 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Contraseña actualizada correctamente"),
-                    backgroundColor: Color(0xFF13BE61),
-                  ),
-                );
+                _updatePasswordInBackend(); 
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF13BE61),
@@ -96,6 +170,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   _buildPasswordField(
                     label: "Contraseña actual",
                     hint: "Ingresa tu contraseña actual",
+                    controller: _actualController,
                     obscureText: _obscureActual,
                     onToggle: () => setState(() => _obscureActual = !_obscureActual),
                   ),
@@ -103,6 +178,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   _buildPasswordField(
                     label: "Nueva contraseña",
                     hint: "Ingresa tu nueva contraseña",
+                    controller: _nuevaController,
                     obscureText: _obscureNueva,
                     onToggle: () => setState(() => _obscureNueva = !_obscureNueva),
                   ),
@@ -110,6 +186,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   _buildPasswordField(
                     label: "Confirmar nueva contraseña",
                     hint: "Repite tu nueva contraseña",
+                    controller: _confirmarController,
                     obscureText: _obscureConfirmar,
                     onToggle: () => setState(() => _obscureConfirmar = !_obscureConfirmar),
                   ),
@@ -120,14 +197,21 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     width: double.infinity,
                     height: 55,
                     child: ElevatedButton(
-                      onPressed: () => _showConfirmDialog(context),
+                      onPressed: _isLoading ? null : () => _showConfirmDialog(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF98E2B9), 
+                        backgroundColor: const Color(0xFF13BE61), 
+                        disabledBackgroundColor: const Color(0xFF98E2B9), 
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                         elevation: 0,
                       ),
-                      child: const Text("Actualizar contraseña", 
-                        style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : const Text("Actualizar contraseña", 
+                              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -142,6 +226,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   Widget _buildPasswordField({
     required String label, 
     required String hint, 
+    required TextEditingController controller,
     required bool obscureText, 
     required VoidCallback onToggle
   }) {
@@ -163,7 +248,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             border: Border.all(color: Colors.black12),
           ),
           child: TextField(
+            controller: controller,
             obscureText: obscureText,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(color: Colors.black26, fontSize: 14),

@@ -26,7 +26,7 @@ class _MainScreenState extends State<MainScreen> {
               child: Row(
                 children: [
                   Image.asset(
-                    'assets/logo-inicio.png',
+                    'assets/icono-inicio.png',
                     height: 42,
                     errorBuilder: (context, error, stackTrace) => 
                         const Icon(Icons.account_balance_wallet, color: Colors.white, size: 42),
