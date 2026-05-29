@@ -4,19 +4,19 @@ import { Usuario } from '../usuarios/usuario.entity';
 @Entity('grupos')
 export class Grupo {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ type: 'varchar', length: 100 })
-  nombre: string;
+  nombre!: string;
 
   @Column({ type: 'text', nullable: true })
-  descripcion: string;
+  descripcion!: string;
 
   @Column({ type: 'integer', default: 0 })
-  iconoIndex: number;
+  iconoIndex!: number;
 
   @CreateDateColumn()
-  fechaCreacion: Date;
+  fechaCreacion!: Date;
 
   @ManyToMany(() => Usuario, (usuario) => usuario.grupos, { cascade: true })
   @JoinTable({
@@ -25,4 +25,6 @@ export class Grupo {
     inverseJoinColumn: { name: 'usuarioId', referencedColumnName: 'id' },
   })
   miembros!: Usuario[];
+
+  // External members removed
 }

@@ -1,9 +1,36 @@
 import 'package:flutter/material.dart';
 import 'create_group_screen.dart';
 import 'group_details_screen.dart';
+import '../../services/group_api.dart';
+import '../../models/group_model.dart';
 
-class AllGroupsScreen extends StatelessWidget {
+class AllGroupsScreen extends StatefulWidget {
   const AllGroupsScreen({super.key});
+
+  @override
+  State<AllGroupsScreen> createState() => _AllGroupsScreenState();
+}
+
+class _AllGroupsScreenState extends State<AllGroupsScreen> {
+  List<GrupoModel> _grupos = [];
+  bool _cargando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroups();
+  }
+
+  Future<void> _loadGroups() async {
+    setState(() => _cargando = true);
+    try {
+      final data = await GroupApi.fetchGroups();
+      final grupos = data.map((g) => GrupoModel.fromJson(g)).toList();
+      if (mounted) setState(() { _grupos = grupos; _cargando = false; });
+    } catch (e) {
+      if (mounted) setState(() { _grupos = []; _cargando = false; });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,9 +117,9 @@ class AllGroupsScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
-                            '3 grupos',
-                            style: TextStyle(
+                          Text(
+                            _cargando ? 'Cargando...' : '${_grupos.length} grupos',
+                            style: const TextStyle(
                               fontSize: 15,
                               color: Color(0xFF46524B),
                             ),
@@ -106,7 +133,7 @@ class AllGroupsScreen extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (context) => const CreateGroupScreen(),
                                   ),
-                                );
+                                ).then((_) => _loadGroups());
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF13BE61),
@@ -127,37 +154,24 @@ class AllGroupsScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      const _GroupTile(
-                        icon: Icons.flight_takeoff_rounded,
-                        iconBackground: Color(0xFFEAF6E9),
-                        title: 'Viaje a Madrid',
-                        members: '3 miembros',
-                        totals: 'Total: \$225.00 • 3 gastos',
-                        debtLabel: 'Te deben',
-                        amount: '\$45.00',
-                        amountColor: Color(0xFF13BE61),
-                      ),
-                      const _GroupTile(
-                        icon: Icons.home_rounded,
-                        iconBackground: Color(0xFFEAF6E9),
-                        title: 'Departamento',
-                        members: '2 miembros',
-                        totals: 'Total: \$1050.00 • 2 gastos',
-                        debtLabel: 'Te deben',
-                        amount: '\$375.00',
-                        amountColor: Color(0xFF13BE61),
-                      ),
-                      const _GroupTile(
-                        icon: Icons.cake_rounded,
-                        iconBackground: Color(0xFFEAF6E9),
-                        title: 'Cena cumpleaños',
-                        members: '4 miembros',
-                        totals: 'Total: \$0.00 • 0 gastos',
-                        debtLabel: 'En paz',
-                        amount: '',
-                        amountColor: Color(0xFF13BE61),
-                        showAmount: false,
-                      ),
+
+                      if (_cargando)
+                        const Center(child: CircularProgressIndicator())
+                      else if (_grupos.isEmpty)
+                        const Text('No hay grupos')
+                      else ..._grupos.map((g) {
+                        return _GroupTile(
+                          icon: Icons.group,
+                          iconBackground: const Color(0xFFEAF6E9),
+                          title: g.nombre,
+                          members: '${g.miembros.length} miembros',
+                          totals: '',
+                          debtLabel: '—',
+                          amount: '',
+                          amountColor: const Color(0xFF13BE61),
+                          groupId: g.id,
+                        );
+                      }).toList(),
                     ],
                   ),
                 ),
@@ -180,6 +194,7 @@ class _GroupTile extends StatelessWidget {
   final String amount;
   final Color amountColor;
   final bool showAmount;
+  final String? groupId;
 
   const _GroupTile({
     required this.icon,
@@ -190,6 +205,7 @@ class _GroupTile extends StatelessWidget {
     required this.debtLabel,
     required this.amount,
     required this.amountColor,
+    this.groupId,
     this.showAmount = true,
   });
 
@@ -199,7 +215,7 @@ class _GroupTile extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const GroupDetailsScreen()),
+          MaterialPageRoute(builder: (context) => GroupDetailsScreen(groupId: groupId)),
         );
       },
       child: Container(

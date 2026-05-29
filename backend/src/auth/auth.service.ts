@@ -5,7 +5,6 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { UsuariosService } from '../usuarios/usuarios.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { MailService } from './mail.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { PasswordResetToken } from './password-reset-token.entity';
@@ -16,7 +15,6 @@ export class AuthService {
   constructor(
     private readonly usuariosService: UsuariosService,
     private readonly jwtService: JwtService,
-    private readonly mailService: MailService,
     @InjectRepository(PasswordResetToken)
     private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
   ) {}
@@ -68,7 +66,7 @@ export class AuthService {
   async forgotPassword(dto: ForgotPasswordDto) {
     const usuario = await this.usuariosService.findByEmail(dto.email);
     if (!usuario) {
-      return { message: 'Correo no registrado' };
+      return { exists: false };
     }
 
     await this.passwordResetTokenRepository.delete({ userId: usuario.id });
@@ -86,18 +84,7 @@ export class AuthService {
       }),
     );
 
-    const frontUrl = process.env.FRONT_URL ?? 'http://localhost:3000';
-    const resetLink = `${frontUrl}/new-password?token=${token}`;
-
-    const result = await this.mailService.sendForgotPassword(usuario.email, resetLink);
-
-    // If SendGrid failed but developer wants the token in response for testing, allow it
-    const devReturn = (process.env.MAIL_DEV_RETURN_LINK ?? process.env.SENDGRID_DEV_RETURN_TOKEN ?? 'false').toLowerCase() === 'true';
-    if (!result.sent && devReturn) {
-      return { message: 'Correo (simulado) enviado', resetLink };
-    }
-
-    return { message: 'Correo enviado con instrucciones' };
+    return { exists: true, resetToken: token };
   }
 
   async resetPassword(dto: ResetPasswordDto) {

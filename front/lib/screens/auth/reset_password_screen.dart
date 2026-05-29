@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_api.dart';
+import 'new_password_screen.dart';
 
 class ResetPasswordScreen extends StatelessWidget {
   const ResetPasswordScreen({super.key});
@@ -45,7 +46,7 @@ class ResetPasswordScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const Text(
-              "No te preocupes, te enviaremos instrucciones\npara restablecerla",
+              "Escribe tu correo y, si existe en el sistema,\nte llevaremos directo al cambio de contraseña",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 16,
@@ -97,9 +98,20 @@ class _EmailFormState extends State<_EmailForm> {
 
     setState(() => _isLoading = true);
     try {
-      await AuthApi.forgotPassword(email: email);
+      final response = await AuthApi.forgotPassword(email: email);
       if (!mounted) return;
-      Navigator.pushNamed(context, '/reset-password-success');
+      final exists = response['exists'] == true;
+      final token = response['resetToken']?.toString();
+
+      if (exists && token != null && token.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const NewPasswordScreen(),
+            settings: RouteSettings(arguments: {'token': token}),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))));
@@ -134,7 +146,7 @@ class _EmailFormState extends State<_EmailForm> {
             ),
           ),
           onPressed: _isLoading ? null : _submit,
-          child: Text(_isLoading ? 'Enviando...' : 'Enviar instrucciones'),
+          child: Text(_isLoading ? 'Verificando...' : 'Continuar'),
         ),
       ],
     );

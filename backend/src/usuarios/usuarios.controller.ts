@@ -9,6 +9,13 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
+  // GET lista de todos los usuarios (sin hash de contraseña)
+  @Get()
+  async findAll() {
+    const users = await this.usuariosService.findAll();
+    return users.map(({ password_hash, ...rest }) => rest);
+  }
+
   // GET Obtiene los datos del usuario logueado
   @Get('profile')
   async getProfile(@Req() req: any) {

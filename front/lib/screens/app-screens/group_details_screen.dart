@@ -1,8 +1,45 @@
 import 'package:flutter/material.dart';
 import 'history_screen.dart'; 
+import '../../services/group_api.dart';
+import '../../models/group_model.dart';
 
-class GroupDetailsScreen extends StatelessWidget {
-  const GroupDetailsScreen({super.key});
+class GroupDetailsScreen extends StatefulWidget {
+  final String? groupId;
+
+  const GroupDetailsScreen({super.key, this.groupId});
+
+  @override
+  State<GroupDetailsScreen> createState() => _GroupDetailsScreenState();
+}
+
+class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
+  GrupoModel? _grupo;
+  List<dynamic> _gastos = [];
+  bool _cargando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGroup();
+  }
+
+  Future<void> _loadGroup() async {
+    if (widget.groupId == null) return setState(() => _cargando = false);
+    setState(() => _cargando = true);
+    try {
+      final data = await GroupApi.fetchGroup(widget.groupId!);
+      final grupoData = data['grupo'] ?? data; // support different shapes
+      final gastosData = data['gastos'] ?? [];
+
+      setState(() {
+        _grupo = GrupoModel.fromJson(grupoData as Map<String, dynamic>);
+        _gastos = gastosData as List<dynamic>;
+        _cargando = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
 
   void _mostrarDialogoEliminar(BuildContext context) {
     showDialog(
@@ -58,21 +95,18 @@ class GroupDetailsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.flight_takeoff,
-                                  color: Colors.white, size: 20),
-                              SizedBox(width: 8),
-                              Text("Viaje a Madrid", 
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold)),
+                              const Icon(Icons.flight_takeoff, color: Colors.white, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                _grupo?.nombre ?? 'Grupo',
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
                             ],
                           ),
-                          const Text("Gastos del viaje de fin de semana",
-                              style: TextStyle(
-                                  color: Colors.white70, fontSize: 13)),
+                          Text(_grupo?.descripcion ?? '', style: const TextStyle(color: Colors.white70, fontSize: 13)),
                         ],
                       ),
                     ),
@@ -106,9 +140,9 @@ class GroupDetailsScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildSummaryCard("3", "Miembros"),
-                    _buildSummaryCard("3", "Gastos"),
-                    _buildSummaryCard("\$225", "Total"),
+                    _buildSummaryCard(_grupo?.miembros.length.toString() ?? '-', 'Miembros'),
+                    _buildSummaryCard(_gastos.length.toString(), 'Gastos'),
+                    _buildSummaryCard('-', 'Total'),
                   ],
                 ),
               ],
@@ -133,18 +167,16 @@ class GroupDetailsScreen extends StatelessWidget {
                 _buildBalanceCard(),
 
                 const SizedBox(height: 25),
-                const Text("Miembros",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                const Text('Miembros', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 const SizedBox(height: 12),
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: [
-                      _buildMemberChip("T", Colors.green, "Tú"),
-                      _buildMemberChip("M", Colors.teal, "María García"),
-                      _buildMemberChip("C", Colors.orange, "Carlos López"),
-                    ],
+                    children: _grupo?.miembros.map((m) => _buildMemberChip(
+                          (m.nombre.isNotEmpty ? m.nombre[0] : '?').toUpperCase(),
+                          Colors.teal,
+                          m.nombre,
+                        )).toList() ?? [const Text('Cargando...')],
                   ),
                 ),
 
@@ -168,12 +200,18 @@ class GroupDetailsScreen extends StatelessWidget {
                             style: TextStyle(color: Color(0xFF13BE61)))),
                   ],
                 ),
-                _buildExpenseItem("Entradas museo", "Carlos López",
-                    "2026-05-11", "60.00", "Entretenimiento"),
-                _buildExpenseItem("Uber al hotel", "María García", "2026-05-10",
-                    "45.00", "Transporte"),
-                _buildExpenseItem("Cena en restaurante", "Tú", "2026-05-10",
-                    "120.00", "Comida"),
+                if (_cargando)
+                  const Center(child: CircularProgressIndicator())
+                else if (_gastos.isEmpty)
+                  const Text('No hay gastos registrados')
+                else ..._gastos.map((g) {
+                  final title = g['descripcion'] ?? 'Gasto';
+                  final payer = (g['pagadoPor'] != null) ? (g['pagadoPor']['nombre'] ?? g['pagadoPor']['email'] ?? 'Usuario') : 'Usuario';
+                  final date = g['fechaGasto'] ?? g['createdAt'] ?? '';
+                  final amount = (g['monto'] != null) ? g['monto'].toString() : '';
+                  final cat = g['categoria'] ?? '';
+                  return _buildExpenseItem(title, payer, date.toString(), amount.toString(), cat);
+                }).toList(),
               ],
             ),
           ),

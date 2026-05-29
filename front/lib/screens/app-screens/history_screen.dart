@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../services/group_api.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../widgets/bottomNavBar.dart';
 import 'add_expense_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_config.dart';
 
 class Gasto {
@@ -53,28 +53,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> fetchGrupos() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('access_token');
-
-      final response = await http.get(
-        Uri.parse('${ApiConfig.normalize(ApiConfig.baseUrl)}/grupos'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        List jsonResponse = json.decode(response.body);
-        setState(() {
-          grupos = [
-            "Todos",
-            ...jsonResponse.map((g) => g['nombre'].toString()),
-          ];
-        });
-      } else {
-        debugPrint("Error ${response.statusCode}: ${response.body}");
-      }
+      final data = await GroupApi.fetchGroups();
+      setState(() {
+        grupos = [
+          "Todos",
+          ...data.map((g) => g['nombre'].toString()),
+        ];
+      });
     } catch (e) {
       debugPrint("Error de red: $e");
     }
